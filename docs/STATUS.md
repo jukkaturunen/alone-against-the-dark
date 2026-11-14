@@ -15,10 +15,12 @@ Updated: 14 November 2026.
 - Located the three source PDFs.
 - Reviewed adventure introduction/rules and handouts at a planning level.
 - Saved the approved plan and repository housekeeping files.
+- Created and verified the private GitHub repository; initial checkpoint uploaded.
+- Prepared three interactive, spoiler-free UI concepts in the project chat: Investigator's dossier, Quiet horror, and Expedition desk. See design/UI-DIRECTIONS.md.
 
 ## Next step
 
-Prepare two or three spoiler-free UI concepts and review them with the user. Do not start game implementation until the UI direction is accepted.
+Get feedback on the three UI concepts, then refine the selected direction and review the key interaction flows. Do not start game implementation until the UI direction is accepted.
 
 ## Resuming work
 
