@@ -19,9 +19,14 @@ Updated: 14 November 2026.
 - Prepared three interactive, spoiler-free UI concepts in the project chat: Investigator's dossier, Quiet horror, and Expedition desk. See design/UI-DIRECTIONS.md.
 - User reviewed the concepts and selected Investigator's dossier.
 
+- Built the first playable opening with the approved dossier design and verified source content.
+- Added investigator setup, Arkham choices, dice and Luck, timekeeping, evidence, notes, separate saves, and export/import.
+- Passed 22 automated tests, built the static app, and exercised the main flow in the browser at desktop and phone widths. See VERIFICATION.md.
+- Prepared Vercel build configuration; no deployment has been created.
+
 ## Next step
 
-Build the first playable opening using the accepted Investigator's dossier design. First inspect the actual opening entries and required rules, then implement investigator setup, choices, a skill check, elapsed time, handout access, and saving/resuming as appropriate to verified source content. The preview's fictional story and mechanics are not source material. Review the opening with the user before expanding the adventure. Vercel deployment and music remain later steps.
+User playtest of the local opening, then address feedback before full adventure expansion. Start with Harding House and remaining Arkham branches after the opening is accepted. Preserve existing saves when adding later-day rules and continuation beyond Boston. See OPENING.md for exact boundaries and interpretation choices. Vercel deployment and music remain later steps.
 
 ## Resuming work
 
