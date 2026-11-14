@@ -14,7 +14,7 @@ Open the printed local URL (normally http://127.0.0.1:4173).
 
 ## Current playable scope
 
-The opening telegram and one day of preparations in Arkham: Louis Grunewald's 150-point skill allocation, bank, newspaper research, university library and faculty, Harding House conversations and research, meals, and the train to Boston. The opening ends on arrival in Boston, after sleeping at home, or at the late-night checkpoint. Shopping, medical treatment, later days, and the onward adventure are explicitly unavailable.
+Play the opening telegram and prepare in Arkham across multiple days before taking the train to Boston. Resting at home through 8 September advances to the next morning. Old rest and late-night saves resume automatically. Boston is the current endpoint. Shopping, medical treatment, and the onward adventure are pending.
 
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 

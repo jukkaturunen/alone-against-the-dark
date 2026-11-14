@@ -28,9 +28,15 @@ Updated: 14 November 2026.
 - Added Harding House conversations, stealth, research, evidence drawings, and schema-1 save migration for v0.2.0.
 - Passed 36 automated tests and browser checks of the new branch, pending-roll persistence, Luck, clue display, travel restrictions, and phone layout.
 
+## v0.3.0
+
+- Added overnight continuation, date-aware travel and opening hours, meal and sleep accounting, daily research resets, and four dated Arkham entries.
+- Version 1 and 2 dossiers upgrade on load. Rest and late-night checkpoints reopen at their saved timestamps. The browser retains a backup of the old library.
+- Verified the migrated next morning in the browser and passed the automated suite and production build.
+
 ## Next step
 
-The user accepted the opening. Harding House is now playable in v0.2.0. Next expand remaining Arkham services (shopping and medical treatment), then later-day bookkeeping and the Boston continuation. Preserve existing saves when adding later-day rules and continuation beyond Boston. See OPENING.md for exact boundaries and interpretation choices. Vercel deployment and music remain later steps.
+Build connected content batches for Arkham services and onward travel from Boston. Follow [DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md) for delegation and [CONTINUATION-DESIGN.md](CONTINUATION-DESIGN.md) for content conventions. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

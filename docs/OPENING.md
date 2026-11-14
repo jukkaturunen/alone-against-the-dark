@@ -1,5 +1,7 @@
 # Playable opening: scope and interpretation
 
+The opening and Harding sections below record v0.1–v0.2 behavior. See the v0.3 notes for current calendar and save behavior.
+
 ## Source mapping
 
 All references below refer to printed pages. Original PDFs remain in local `src/`.
@@ -59,3 +61,12 @@ The app uses browser-native JavaScript modules with no runtime dependencies. Sta
 - Source discrepancy awaiting review: entry 68 lists incoming references from 24 and 49, but neither entry's outgoing text directs there. Entries 68/188 and the drawing are prepared in the content module, but no invented path exposes them. The reachable map-like symbol from entry 46 uses a cropped original drawing.
 - Nameless Cults initial reading takes an additional hour, grants 3 Mythos points once, and adds the book to possessions. A search is unavailable too late to finish this initial reading. Full reading, Sanity costs, and spell study remain deferred with later days. A natural 01 is treated as critical even at zero Mythos; Luck cannot purchase a critical.
 - Save schema 2 adds Mythos and explicit check difficulty/duration. Schema 1 imports and browser saves are migrated while preserving pending rolls, notes, funds, and outcomes. The original browser library is backed up before upgrading. Completed opening dossiers remain completed; later-day continuation still requires a future migration.
+
+
+## Multi-day Arkham (v0.3.0)
+
+Resting at home plays through the wake time. Travel, research, and waiting can cross midnight. Daily resets apply to newspaper checks, room searches, and Harding persuasion. Previously collected evidence and one-time follow-up attempts persist. Saturday library hours and September 9 / October 1 branches use the in-game date. After a visit to entry 147, its return link goes to 102 with home meals and sleep disabled so the printed redirects cannot trap the player.
+
+Meal periods count on their start date and must start six hours apart, including across midnight. Meal periods make up yesterday's debt first. Unpaid debt expires with one health lost at midnight, and missed current periods carry one day forward. Where food is unavailable, a one-hour substitute rest counts as a period and costs at most one health per date. On a date with a fasting penalty, daily natural healing is skipped. A night without a sleep block by 8 AM adds eight hours to the next block. These timing choices resolve ambiguities in the source. Sleep at home is available from 8 PM into the early morning, through September 8.
+
+Save schema 3 preserves historical meals, notes, clues, and pending dice. A migrated rest checkpoint starts at its already-recorded wake time with prior-day meal debt initialized. A migrated late-night checkpoint resumes in place with its original exit requirements. Boston still ends the preview.

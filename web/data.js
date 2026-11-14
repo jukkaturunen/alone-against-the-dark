@@ -1,3 +1,4 @@
+import { LATER_SCENES } from './arkham-later.js';
 import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
@@ -30,14 +31,15 @@ export const CLUES = {
 };
 export const CHECKS = {
  ...HARDING_CHECKS,
- 'news-library':{entry:60,skill:'Library Use',clue:'mylonas',target:48,repeat:false},
- 'news-spot':{entry:60,skill:'Spot Hidden',clue:'discovery',target:125,repeat:false},
- 'news-luck':{entry:60,skill:'Luck',clue:'device',target:168,repeat:false},
+ 'news-library':{entry:60,skill:'Library Use',clue:'mylonas',target:48,repeat:false,daily:true},
+ 'news-spot':{entry:60,skill:'Spot Hidden',clue:'discovery',target:125,repeat:false,daily:true},
+ 'news-luck':{entry:60,skill:'Luck',clue:'device',target:168,repeat:false,daily:true},
  'library-use':{entry:145,skill:'Library Use',clue:'museum',target:25,repeat:true},
  'library-spot':{entry:145,skill:'Spot Hidden',clue:'myths',target:70,repeat:true}
 };
 export const SCENES = {
  ...HARDING_SCENES,
+ ...LATER_SCENES,
  13:{title:'A telegram at dusk',eyebrow:'The first of September, 1931',source:'Entry 13 · pp. 11–12',paragraphs:[
  'For you, Professor Louis Grunewald, this first day of September 1931 has been tiring and uncomfortable. Light mist has covered Arkham for most of the day. You held two uninspired undergraduate classes at Miskatonic University, and you met with the new chairman of the literature Department, a giddy Technocrat.',
  'You survey your desk and see that a stack of papers to grade has already formed. You’re enjoying your second pipe of the evening, and putting off grading papers, when the doorbell rings. To your surprise, it’s a telegraphic messenger.',

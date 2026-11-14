@@ -1,12 +1,14 @@
 import { BASE_SKILLS, CLUES, LOCATIONS, CHECKS } from './data.js';
 import { ENTRY_CLUES, HARDING_ENTRIES } from './harding.js';
-export const VERSION = 2;
+import { LATER_CHOICES } from './arkham-later.js';
+import { readLegacySave } from './legacy-save.js';
+import { HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
+export { MORNING, mealCount, mealTarget, canEat, sleepHours };
+export const VERSION = 3;
 export const START = Date.UTC(1931, 8, 1, 20);
-export const MORNING = Date.UTC(1931, 8, 2, 6);
-export const END_DAY = Date.UTC(1931, 8, 3);
-const HOUR = 3600000;
+
 const CHARACTERISTICS = { STR:70, CON:50, SIZ:45, DEX:60, INT:70, APP:55, POW:55, EDU:93 };
-const ENTRIES = {home:[13,102],bank:[3],newspaper:[60],university:[82,122,100,186,145,574],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES};
+const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES};
 export function hour(s) { return new Date(s.time).getUTCHours(); }
 export function clock(time) { return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'UTC'}).format(time); }
 export function date(time) { return new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(time); }
@@ -16,7 +18,7 @@ export function validAllocation(a) {
 }
 export function newGame(id,name,allocation) {
  if(!validAllocation(allocation)) throw new Error('Assign exactly 150 points. Skills may not exceed 99%.');
- return {version:VERSION,id,name:name.trim().slice(0,60)||'An Arkham investigation',time:START,entry:13,location:'home',phase:'playing',allocation:{...allocation},hp:9,sanity:55,luck:50,mythos:0,bank:2200,cash:0,inventory:['Passport','Packed clothes and sundries'],clues:[],flags:{},attempts:{},meals:[],sleep:0,pending:null,lastRoll:null,notes:'',log:[{time:START,text:'The investigation begins at Grunewald’s home.'}],visited:[13]};
+ return {version:VERSION,id,name:name.trim().slice(0,60)||'An Arkham investigation',time:START,entry:13,location:'home',phase:'playing',allocation:{...allocation},hp:9,sanity:55,luck:50,mythos:0,bank:2200,cash:0,inventory:['Passport','Packed clothes and sundries'],clues:[],flags:{},attempts:{},meals:[],mealDebt:0,fastingToday:false,sleep:0,sleepDebt:0,sleptNight:null,pending:null,lastRoll:null,notes:'',log:[{time:START,text:'The investigation begins at Grunewald’s home.'}],visited:[13]};
 }
 export function skill(s,name) {
  if(name==='Luck') return s.luck;
@@ -50,28 +52,48 @@ function go(s,entry) {
  if(entry===28) delete s.flags.doorOpen;
  if(entry===7) delete s.flags.windowQuiet;
 }
-function advance(s,hours) { s.time+=hours*HOUR; }
-function withinDay(s,hours) { return s.time+hours*HOUR<END_DAY; }
-export function isOpen(location,time) {
- const h=new Date(time).getUTCHours(), day=new Date(time).getUTCDay();
- if(['home','depot','boston','harding'].includes(location)) return true;
- const [open,close]=location==='university'?[8,21]:LOCATIONS[location].hours;
- return day>=1&&day<=5&&h>=open&&h<close;
+function dailyCheck(id) {
+ return CHECKS[id].daily === true;
 }
-export function canEat(s) { return s.meals.length<2 && (!s.meals.length||s.time-s.meals.at(-1)>=6*HOUR); }
+function resetDailyAttempts(s) {
+ for (const id of Object.keys(s.attempts)) {
+  if (dailyCheck(id)) delete s.attempts[id];
+ }
+}
+function advance(s,hours,sleeping=false) {
+ const previousTime=s.time;
+ advanceCalendar(s,hours,resetDailyAttempts,log,sleeping);
+ if(s.entry===102&&previousTime<LATE_ARKHAM&&s.time>=LATE_ARKHAM) go(s,147);
+}
+function officeOpen(time) { return weekday(time)&&hourOf(time)>=8&&hourOf(time)<17; }
+function libraryOpen(time) { return weekday(time,6)&&hourOf(time)>=9&&hourOf(time)<21; }
+function foodAvailable(s) {
+ return s.entry===102&&s.time<LATE_ARKHAM || s.entry===593&&isOpen('diner',s.time);
+}
+function laterChoiceAvailable(s,choice) {
+ if(choice.id==='later-dean') return officeOpen(s.time);
+ if(choice.id==='later-library') return libraryOpen(s.time);
+ return true;
+}
+export function isOpen(location,time) {
+ const h=new Date(time).getUTCHours();
+ if(['home','depot','boston','harding'].includes(location)) return true;
+ if(location==='university') return officeOpen(time)||libraryOpen(time);
+ const [open,close]=LOCATIONS[location].hours;
+ return weekday(time)&&h>=open&&h<close;
+}
 export function canLeaveLocation(s) {
- if(s.pending||s.phase!=='playing'||s.flags.caughtOnEntry||[13,100].includes(s.entry)) return false;
+ if(s.pending||s.phase!=='playing'||s.flags.caughtOnEntry||[13,100,147,172,197].includes(s.entry)) return false;
  if(s.location!=='harding') return true;
  return [113,23,45,89,90,2,51].includes(s.entry)||(s.entry===7&&s.flags.windowQuiet===true);
 }
 function checkAvailable(s,id) {
  const r=CHECKS[id];
  if(!r||s.entry!==r.entry||(!r.repeat&&s.attempts[id])) return false;
- if(!withinDay(s,(r.duration??1)+(r.successDuration||0))) return false;
- if(id==='room-mythos'&&!s.flags.bookSkimmed&&!withinDay(s,2)) return false;
+ if(id==='room-mythos'&&s.flags.bookSkimmed) return false;
  if(r.clue&&s.clues.includes(r.clue)) return false;
- if(s.entry===60&&(hour(s)<8||hour(s)+(r.duration??1)>17)) return false;
- if(s.entry===145&&(hour(s)<9||hour(s)+(r.duration??1)>21)) return false;
+ if(s.entry===60&&!isOpen('newspaper',s.time)) return false;
+ if(s.entry===145&&!libraryOpen(s.time)) return false;
  if(s.entry===7&&s.flags.windowQuiet) return false;
  if(s.entry===28&&((id==='door-stealth')!==!!s.flags.doorOpen)) return false;
  return true;
@@ -86,15 +108,17 @@ export function actions(s) {
   return a;
  }
  if(s.location==='home'&&s.entry===102) {
-  add('eat','Prepare a meal','1 hour · meals must be at least 6 hours apart',!canEat(s)||!withinDay(s,1));
+  if(s.time<LATE_ARKHAM) add('eat','Prepare a meal','1 hour · meals must be at least 6 hours apart',!canEat(s));
   add('phone-sailings','Telephone for sailing schedules','Arkham Advertiser · 1 hour',!isOpen('newspaper',s.time));
   add('phone-curator','Telephone for news of Athens','Arkham Advertiser · 1 hour',!isOpen('newspaper',s.time));
-  add('rest','Turn in for the night','8 hours · ends this opening',hour(s)<20);
+  if(s.time<LATE_ARKHAM) add('rest','Turn in for the night',`${sleepHours(s)} continuous hours · continue after waking`,
+   (hour(s)>=8&&hour(s)<20)||s.sleptNight===nightStart(s.time));
  }
  if(s.entry===3) add('withdraw',s.bank?'Withdraw travel funds':'Funds withdrawn',s.bank?`Withdraw $${s.bank.toLocaleString('en-US')}`:'Your money is now carried cash',s.bank===0||!isOpen('bank',s.time));
  if(s.entry===60) {
   add('sailings','Ask about ocean liners','1 hour · shipping information',!isOpen('newspaper',s.time));
   add('curator','Ask for news of Athens','1 hour · current news',!isOpen('newspaper',s.time));
+  if(s.time>=Date.UTC(1931,9,1)) add('october-news','Ask about Gliere and Miskatonic','1 hour',!isOpen('newspaper',s.time));
  }
  for(const [id,r] of Object.entries(CHECKS)) {
   if(r.entry!==s.entry) continue;
@@ -106,15 +130,22 @@ export function actions(s) {
   add(id,r.label||`Research with ${r.skill}`,`${r.skill} ${required}%${r.difficulty?' · '+r.difficulty:''} · ${timing}${used?' · tried today':''}`,!checkAvailable(s,id));
  }
  if(s.entry===82) {
-  add('library','Visit the library','Open 9 AM–9 PM · no additional travel hour',hour(s)<9||hour(s)>=21);
-  add('fen','Speak with Dr. Fen','1 hour',hour(s)<8||hour(s)+1>17);
-  add('dean','See Dean Wilcox','1 hour',hour(s)<8||hour(s)+1>17);
+  add('library','Visit the library','Open 9 AM–9 PM · no additional travel hour',!libraryOpen(s.time));
+  add('fen','Speak with Dr. Fen','1 hour',!officeOpen(s.time));
+  add('dean','See Dean Wilcox','1 hour',!officeOpen(s.time));
  }
- if(s.entry===122) { add('dean','Speak with the Dean','1 hour',hour(s)+1>17); add('university','Return to the university','No time passes'); }
+ if(s.entry===122) { add('dean','Speak with the Dean','1 hour',!officeOpen(s.time)); add('university','Return to the university','No time passes'); }
  if(s.entry===100) { add('resign','Threaten to resign','Stand by your decision to help Gliere'); add('abandon','Let Gliere fend for himself','Ends this investigation'); }
  if([186,145].includes(s.entry)) add('university','Return to the university','No time passes');
- if(s.entry===593) add('eat','Order a meal','1 hour · meals must be at least 6 hours apart',!canEat(s)||hour(s)+1>17||hour(s)<6);
- if(s.entry===16) for(const departure of [9,12,17]) if(hour(s)<=departure) add(`train-${departure}`,`Take the ${clock(Date.UTC(1931,8,2,departure))} train`,`Arrive Boston ${clock(Date.UTC(1931,8,2,departure+1))} · ends this opening`);
+ for(const choice of LATER_CHOICES[s.entry]||[]) {
+  add(choice.id,choice.label,choice.detail,!laterChoiceAvailable(s,choice));
+ }
+ if(s.entry===593) add('eat','Order a meal','1 hour · meals must be at least 6 hours apart',!canEat(s)||!foodAvailable(s));
+ if(s.entry===16) for(const departure of [9,12,17]) {
+  if(hour(s)>departure) continue;
+  const time = dayStart(s.time) + departure * HOUR;
+  add(`train-${departure}`,`Take the ${clock(time)} train`,`Arrive Boston ${clock(time+HOUR)} · current preview boundary`);
+ }
  if(s.entry===113) {
   const late=hour(s)>=20||hour(s)<8;
   if(!late) {
@@ -132,21 +163,23 @@ export function actions(s) {
  if(s.entry===11) add('listen-door','Listen at the door','Continue');
  if(s.entry===72) add('study-map','Examine the map','No additional hour');
  if(s.entry===49) add('study-symbol','Examine the design','No additional hour');
- if(s.entry===121&&!s.flags.bookSkimmed) add('skim-book','Read the book over','1 additional hour · +3 Cthulhu Mythos',!withinDay(s,1));
+ if(s.entry===121&&!s.flags.bookSkimmed) add('skim-book','Read the book over','1 additional hour · +3 Cthulhu Mythos');
  if([24,29,32,49,72,124,212,282,208,53,46,68,188].includes(s.entry)||(s.entry===121&&s.flags.bookSkimmed)) add('return-room','Return to your search','No additional hour');
- if(hour(s)>=23&&s.location!=='home'&&s.entry!==100) add('finish-opening','Pause at the end of the day','Later days are coming next');
- if(canLeaveLocation(s)) add('wait','Wait one hour','The clock advances',!withinDay(s,1));
+ if(canLeaveLocation(s)) {
+  if(!foodAvailable(s)&&canEat(s)) add('fast-rest','Rest in place of a meal','1 hour · fasting costs 1 health per day');
+  add('wait','Wait one hour','The clock advances');
+ }
  return a;
 }
 export function travelOptions(s) {
- return Object.entries(LOCATIONS).filter(([id])=>id!=='boston').map(([id,l])=>({id,...l,open:isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)||!withinDay(s,1)}));
+ return Object.entries(LOCATIONS).filter(([id])=>id!=='boston').map(([id,l])=>({id,...l,open:isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
 }
 function startCheck(s,id,rollFn) {
  const r=CHECKS[id],base=skill(s,r.skill),target=r.difficulty==='Hard'?Math.floor(base/2):base,roll=rollFn();
  if(!Number.isInteger(roll)||roll<1||roll>100) throw new Error('Invalid dice result.');
  const duration=r.duration??1;
- advance(s,duration);
  s.attempts[id]=(s.attempts[id]||0)+1;
+ advance(s,duration);
  s.pending={id,roll,target,base,skill:r.skill,difficulty:r.difficulty||'Regular',duration,level:successLevel(roll,base,target)};
  log(s,`${r.skill}: rolled ${roll} against ${target} (${s.pending.level}; ${s.pending.difficulty} difficulty).`);
 }
@@ -155,24 +188,46 @@ export function act(original,id,rollFn=d100) {
  if(!actions(s).some(a=>a.id===id&&!a.disabled)) throw new Error('That action is not available now.');
  if(Object.hasOwn(CHECKS,id)) { startCheck(s,id,rollFn); return s; }
  if(id==='telegram') { unlock(s,'telegram'); s.flags.telegramRead=true; return s; }
- if(id==='begin') { s.time=MORNING;s.sleep=8;go(s,102);log(s,'Replied to Gliere and Ernest Holt, packed, and slept. Awake on 2 September.');return s; }
- if(id==='finish-opening') {s.phase='complete';s.flags.endReason='dayEnd';log(s,'Reached the end of the playable day. Progress preserved for the next chapter.');return s;}
- if(id==='rest') {advance(s,8);s.sleep=8;s.phase='complete';s.flags.endReason='rest';log(s,'Slept for eight hours. The playable opening is complete.');return s;}
+ if(id==='begin') { s.time=MORNING;s.sleep=8;s.sleptNight=dayStart(START);go(s,102);log(s,'Replied to Gliere and Ernest Holt, packed, and slept. Awake on 2 September.');return s; }
+ if(id==='rest') {
+  s.sleptNight=nightStart(s.time);
+  s.sleep=sleepHours(s);
+  s.sleepDebt=0;
+  advance(s,s.sleep,true);
+  log(s,`Slept for ${s.sleep} continuous hours. Woke at ${clock(s.time)}.`);
+  return s;
+ }
  if(id==='abandon') {go(s,574);s.phase='ending';log(s,'Abandoned the journey. The investigation ends.');return s;}
- if(id.startsWith('train-')) {const departure=Number(id.split('-')[1]);s.time=Date.UTC(1931,8,2,departure+1);s.location='boston';go(s,64);s.phase='complete';s.flags.endReason='boston';log(s,'Took the train to Boston. The playable opening is complete.');return s;}
- const duration=['eat','fen','dean','wait','sailings','curator','phone-sailings','phone-curator','harding-fast','harding-charm','harding-ask','harding-bribe','skim-book'].includes(id)?1:0;
- if(!withinDay(s,duration)) throw new Error('This opening covers 2 September. Use the end-of-day checkpoint to preserve your progress.');
- if(id==='eat') {s.meals.push(s.time);advance(s,1);log(s,'Ate a meal.');return s;}
+ if(id.startsWith('train-')) {
+  const departure=Number(id.split('-')[1]);
+  advance(s,departure-hour(s)+1);
+  s.location='boston';go(s,64);s.phase='complete';s.flags.endReason='boston';
+  log(s,'Took the train to Boston.');return s;
+ }
+ if(id==='eat'||id==='fast-rest') {
+  s.meals.push(s.time);
+  if(id==='fast-rest'&&!s.fastingToday) {
+   s.hp=Math.max(0,s.hp-1);
+   s.fastingToday=true;
+   log(s,'Fasted. Lost 1 health.');
+  }
+  advance(s,1);
+  log(s,id==='eat'?'Ate a meal.':'Rested in place of a meal.');
+  return s;
+ }
+ const choice=(LATER_CHOICES[s.entry]||[]).find(choice=>choice.id===id);
+ if(choice) {advance(s,choice.duration);go(s,choice.target);return s;}
+ if(id==='october-news') {advance(s,1);go(s,172);return s;}
  if(id==='withdraw') {s.cash+=s.bank;s.bank=0;log(s,'Withdrew $2,200 in travel funds.');return s;}
  if(id==='wait') {advance(s,1);log(s,'Waited one hour.');return s;}
  if(['phone-sailings','sailings','phone-curator','curator'].includes(id)) {advance(s,1);unlock(s,id.includes('sailings')?'sailings':'curator');return s;}
  if(id==='library') {go(s,145);return s;}
  if(id==='university') {go(s,82);return s;}
- if(id==='fen'||id==='dean') {advance(s,1);go(s,id==='fen'?122:100);log(s,id==='fen'?'Spoke with Dr. Fen.':'Asked Dean Wilcox for leave.');return s;}
+ if(id==='fen'||id==='dean') {const late=s.time>=LATE_ARKHAM;advance(s,1);go(s,id==='fen'?(late?143:122):(late?197:100));log(s,id==='fen'?'Spoke with Dr. Fen.':'Asked Dean Wilcox for leave.');return s;}
  if(id==='resign') {go(s,186);s.flags.ticketFunded=true;log(s,'The university agreed to pay for a round-trip ticket.');return s;}
  const conversations={'harding-fast':23,'harding-charm':45,'harding-ask':67,'harding-bribe':89};
  if(Object.hasOwn(conversations,id)) {advance(s,1);go(s,conversations[id]);log(s,'Spoke with Mrs. Harding.');return s;}
- if(id==='wait-for-night') {s.time=Math.max(s.time,Date.UTC(1931,8,2,20));go(s,90);log(s,'Waited for nightfall at Harding House.');return s;}
+ if(id==='wait-for-night') {advance(s,Math.max(0,20-hour(s)));go(s,90);log(s,'Waited for nightfall at Harding House.');return s;}
  if(id==='skim-book') {
   advance(s,1);s.mythos+=3;s.sanity=Math.min(s.sanity,99-s.mythos);s.flags.bookSkimmed=true;unlock(s,'nameless');
   s.inventory.push('Nameless Cults (Golden Goblin Press edition)');log(s,'Read Nameless Cults for one hour; gained 3 Cthulhu Mythos points.');return s;
@@ -211,7 +266,10 @@ export function travel(original,destination) {
  if(!option||option.disabled) throw new Error('That destination is not available.');
  if(!option.open) throw new Error('That location will be closed when you arrive.');
  const s=structuredClone(original);advance(s,1);s.location=destination;
- go(s,destination==='harding'&&hour(s)>=20?90:LOCATIONS[destination].entry);
+ let entry=LOCATIONS[destination].entry;
+ if(destination==='harding'&&(hour(s)>=20||hour(s)<8)) entry=90;
+ if(destination==='home'&&s.time>=LATE_ARKHAM) entry=147;
+ go(s,entry);
  log(s,`Travelled to ${LOCATIONS[destination].name}.`);return s;
 }
 function plain(x) {return x&&typeof x==='object'&&!Array.isArray(x);}
@@ -223,38 +281,46 @@ function validRoll(p,s,pending) {
  if(!num(p.roll,1,100)||!num(p.base,0,99)||p.skill!==r.skill||p.difficulty!==(r.difficulty||'Regular')||p.duration!==(r.duration??1)) return false;
  const required=r.difficulty==='Hard'?Math.floor(p.base/2):p.base;
  if(p.target!==required) return false;
- if(pending) return s.entry===r.entry&&s.phase==='playing'&&p.base===skill(s,r.skill)&&p.level===successLevel(p.roll,p.base,p.target)&&withinDay(s,r.successDuration||0);
+ if(pending) return s.entry===r.entry&&s.phase==='playing'&&p.base===skill(s,r.skill)&&p.level===successLevel(p.roll,p.base,p.target);
  if(!num(p.adjusted,1,100)||!num(p.spent,0,50)||p.adjusted!==p.roll-p.spent||p.level!==successLevel(p.adjusted,p.base,p.target)||p.success!==(p.level!=='Fumble'&&(p.adjusted===1||p.adjusted<=p.target))) return false;
  if(p.spent&&(p.skill==='Luck'||successLevel(p.roll,p.base,p.target)==='Fumble'||p.adjusted===1)) return false;
  return p.clue===null||(Object.hasOwn(CLUES,p.clue)&&s.clues.includes(p.clue));
 }
 export function validateSave(s) {
  if(!plain(s)||s.version!==VERSION||!str(s.id,100)||!s.id||!str(s.name,60)||!validAllocation(s.allocation)) return false;
- if(!num(s.time,START,END_DAY+8*HOUR)||s.time%HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,3)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,2200)||s.bank+s.cash!==2200||!num(s.sleep,0,8)) return false;
+ if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,3)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,2200)||s.bank+s.cash!==2200||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
  if(!Object.hasOwn(LOCATIONS,s.location)||!['playing','complete','ending'].includes(s.phase)||!Array.isArray(s.clues)||s.clues.length>Object.keys(CLUES).length||!s.clues.every(c=>Object.hasOwn(CLUES,c))||new Set(s.clues).size!==s.clues.length) return false;
  if(!ENTRIES[s.location]?.includes(s.entry)||!plain(s.flags)) return false;
  const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed'];
- if(Object.entries(s.flags).some(([k,v])=>k==='endReason'?!['rest','boston','dayEnd'].includes(v):!boolFlags.includes(k)||typeof v!=='boolean')) return false;
+ if(Object.entries(s.flags).some(([k,v])=>k==='endReason'?v!=='boston':!boolFlags.includes(k)||typeof v!=='boolean')) return false;
  if(s.flags.caughtOnEntry&&![141,2,11,150].includes(s.entry)) return false;
- if(s.phase==='playing'&&(s.time>=END_DAY||s.location==='boston'||s.entry===574)) return false;
- if(s.phase==='complete'&&!((s.flags.endReason==='rest'&&s.location==='home'&&s.entry===102)||(s.flags.endReason==='boston'&&s.entry===64)||(s.flags.endReason==='dayEnd'&&hour(s)>=23))) return false;
+ if(s.phase==='playing'&&(s.flags.endReason||s.location==='boston'||s.entry===574)) return false;
+ if(s.phase==='complete'&&!(s.flags.endReason==='boston'&&s.entry===64)) return false;
  if(s.phase==='ending'&&s.entry!==574) return false;
- if(!str(s.notes,20000)||!Array.isArray(s.inventory)||s.inventory.length>100||!s.inventory.every(i=>str(i,200))||!Array.isArray(s.log)||s.log.length>2000||!s.log.every(l=>plain(l)&&num(l.time,START,s.time)&&str(l.text,500))) return false;
- if(!Array.isArray(s.meals)||s.meals.length>2||!s.meals.every(t=>num(t,MORNING,s.time)&&t%HOUR===0)||s.meals.length===2&&s.meals[1]-s.meals[0]<6*HOUR) return false;
- if(!Array.isArray(s.visited)||s.visited.length>80||!s.visited.every(e=>Object.values(ENTRIES).flat().includes(e))||!plain(s.attempts)||!Object.entries(s.attempts).every(([id,n])=>Object.hasOwn(CHECKS,id)&&num(n,1,2000))) return false;
+ if(!str(s.notes,20000)||!Array.isArray(s.inventory)||s.inventory.length>100||!s.inventory.every(i=>str(i,200))||!Array.isArray(s.log)||s.log.length>15000||!s.log.every(l=>plain(l)&&num(l.time,START,s.time)&&str(l.text,500))) return false;
+ if(!Array.isArray(s.meals)||s.meals.length>15000||!s.meals.every((t,i)=>num(t,MORNING,s.time)&&t%HOUR===0&&(!i||t-s.meals[i-1]>=6*HOUR))) return false;
+ if(mealCount(s)>mealTarget(s)) return false;
+ if(!Array.isArray(s.visited)||s.visited.length>80||!s.visited.every(e=>Object.values(ENTRIES).flat().includes(e))||!plain(s.attempts)||!Object.entries(s.attempts).every(([id,n])=>Object.hasOwn(CHECKS,id)&&num(n,1,15000))) return false;
  if(s.pending!==null&&!validRoll(s.pending,s,true)) return false;
  if(s.lastRoll!==null&&!validRoll(s.lastRoll,s,false)) return false;
  return true;
 }
 export function migrateSave(original) {
- const s=structuredClone(original);
- if(s?.version===1) {
-  const legacyChecks=['news-library','news-spot','news-luck','library-use','library-spot'];
-  if(s.pending&&!legacyChecks.includes(s.pending.id)||s.lastRoll&&!legacyChecks.includes(s.lastRoll.id)) throw new Error('Invalid legacy dice record.');
-  s.version=VERSION;s.mythos=0;
-  for(const key of ['pending','lastRoll']) if(s[key]) {
-   const p=s[key];p.base=p.target;p.difficulty='Regular';p.duration=1;
-   if(key==='lastRoll') p.clue=p.success?CHECKS[p.id].clue:null;
+ const s=original?.version===VERSION ? structuredClone(original) : readLegacySave(original);
+ if(s.version===2) {
+  s.version=VERSION;
+  s.mealDebt=0;
+  s.fastingToday=false;
+  s.sleepDebt=0;
+  s.sleptNight=s.entry===13 ? null : dayStart(START);
+  if(s.flags.endReason==='rest') {
+   s.mealDebt=2-s.meals.length;
+   s.sleptNight=dayStart(MORNING);
+   resetDailyAttempts(s);
+  }
+  if(['rest','dayEnd'].includes(s.flags.endReason)) {
+   s.phase='playing';
+   delete s.flags.endReason;
   }
  }
  if(!validateSave(s)) throw new Error('This dossier could not be read safely. The original has not been changed.');

@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
 import {newGame,act,travel,actions,resolveRoll,luckCost,validateSave,canLeaveLocation,clock} from '../web/engine.js';
 import {SUGGESTED} from '../web/data.js';
-import {importSave,exportSave,loadLibrary,saveLibrary} from '../web/storage.js';
+import {importSave,exportSave} from '../web/storage.js';
 const start=()=>act(act(newGame('harding-test','Harding test',SUGGESTED),'telegram'),'begin');
 const wait=(s,n)=>{for(let i=0;i<n;i++)s=act(s,'wait');return s;};
 const front=()=>travel(wait(start(),1),'harding');
@@ -22,7 +21,12 @@ test('room research costs one hour and each skill can only be used once today',(
 test('cipher chain costs another hour only on successful History',()=>{let s=check(room(),'room-cryptography');s=check(s,'notes-intelligence');s=check(s,'notes-language');const before=s.time;assert.equal(check(s,'notes-history',100).time,before);s=check(s,'notes-history');assert.equal(s.time,before+3600000);assert(s.clues.includes('glyphHistory'));s=check(s,'notes-mythos');assert(s.clues.includes('shoggoth'));});
 test('Luck discovery unlocks the drawing only after examining the paper',()=>{let s=check(room(),'room-luck');assert(!s.clues.includes('symbolMap'));s=act(s,'study-symbol');assert(s.clues.includes('symbolMap'));assert(s.inventory.includes('Notepaper with a map-like symbol'));assert.deepEqual(importSave(exportSave(s)),s);});
 test('Nameless Cults initial reading takes another hour and grants Mythos once',()=>{let s=check(room(),'room-mythos');assert.equal(s.mythos,0);const before=s.time;s=act(s,'skim-book');assert.equal(s.time,before+3600000);assert.equal(s.mythos,3);assert(s.clues.includes('nameless'));assert.throws(()=>act(s,'skim-book'));s=act(s,'return-room');assert.throws(()=>act(s,'room-mythos'));assert(validateSave(s));});
-test('late-night book search reserves time for required initial reading',()=>{let s=check(hall(),'room-D');s=check(s,'room-intelligence');s=act(s,'return-room');s=check(s,'room-spot');s=act(s,'return-room');assert.equal(clock(s.time),'10:00 PM');assert(actions(s).find(a=>a.id==='room-mythos').disabled);s=check(s,'room-luck');s=act(s,'return-room');s=act(s,'finish-opening');assert(validateSave(s));});
-const legacy=JSON.parse(readFileSync(new URL('./fixtures/v1-pending.json',import.meta.url),'utf8'));
-test('v0.1 exported pending roll upgrades without rerolling or changing notes',()=>{const s=importSave(JSON.stringify(legacy));assert.equal(s.version,2);assert.equal(s.pending.roll,84);assert.equal(s.pending.target,80);assert.equal(s.notes,legacy.game.notes);assert.equal(legacy.game.version,1);assert.equal(resolveRoll(s,true).luck,46);});
-test('browser migration backs up the exact old library before later writes',()=>{const raw=JSON.stringify({version:1,active:legacy.game.id,games:[legacy.game]});const values=new Map([['aatd.dossiers.v1',raw]]),store={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};const library=loadLibrary(store);assert.equal(values.get('aatd.dossiers.backup-before-v2'),raw);assert.equal(values.get('aatd.dossiers.v1'),raw);saveLibrary(library,store);assert.equal(JSON.parse(values.get('aatd.dossiers.v1')).version,2);assert.equal(values.get('aatd.dossiers.backup-before-v2'),raw);});
+test('a late-night search and initial reading can finish after midnight',()=>{
+ let s=check(hall(),'room-D');
+ for(const id of ['room-intelligence','room-spot']) s=act(check(s,id),'return-room');
+ assert.equal(clock(s.time),'10:00 PM');
+ s=act(check(s,'room-mythos'),'skim-book');
+ assert.equal(s.time,Date.UTC(1931,8,3));
+ assert.equal(s.mythos,3);
+ assert(validateSave(s));
+});

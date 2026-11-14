@@ -1,30 +1,73 @@
-import { validateSave, migrateSave } from './engine.js';
+import { VERSION, validateSave, migrateSave } from './engine.js';
+
 const KEY='aatd.dossiers.v1';
-const BACKUP='aatd.dossiers.backup-before-v2';
+const BACKUP_V1='aatd.dossiers.backup-before-v2';
+const BACKUP_V3='aatd.dossiers.backup-before-v3';
+const SUPPORTED_VERSIONS=[1,2,VERSION];
+const LIBRARY_ERROR='The saved dossiers could not be read. Your browser copy has not been overwritten.';
+
+function parseLibrary(raw) {
+ let data;
+ try { data=JSON.parse(raw); }
+ catch { throw new Error(LIBRARY_ERROR); }
+ if(!data||!SUPPORTED_VERSIONS.includes(data.version)||!Array.isArray(data.games)||data.games.length>30) throw new Error(LIBRARY_ERROR);
+ if(data.games.some(game=>game?.version!==data.version)) throw new Error(LIBRARY_ERROR);
+ return data;
+}
+
+function checkUniqueIds(games) {
+ if(new Set(games.map(g=>g.id)).size!==games.length) throw new Error('Duplicate dossiers in browser storage.');
+}
+
+function readGames(data) {
+ const games=data.games.map(migrateSave);
+ checkUniqueIds(games);
+ return games;
+}
+
+function backUpLibrary(data,raw,storage) {
+ if(data.version===VERSION) return;
+ try {
+  if(data.version===1&&storage.getItem(BACKUP_V1)==null) storage.setItem(BACKUP_V1,raw);
+  if(storage.getItem(BACKUP_V3)!==raw) storage.setItem(BACKUP_V3,raw);
+ }
+ catch { throw new Error('A backup could not be saved before upgrading. Free browser storage or export your old dossier first.'); }
+}
+
 export function loadLibrary(storage=localStorage) {
  const raw=storage.getItem(KEY);
- if(!raw) return {active:null,games:[]};
- const data=JSON.parse(raw);
- if(!data||![1,2].includes(data.version)||!Array.isArray(data.games)||data.games.length>30) throw new Error('The saved dossiers could not be read. Your browser copy has not been overwritten.');
- const games=data.games.map(migrateSave);
- if(new Set(games.map(g=>g.id)).size!==games.length) throw new Error('Duplicate dossiers in browser storage.');
- if(data.version===1) {
-  try { storage.setItem(BACKUP,raw); }
-  catch { throw new Error('A backup could not be saved before upgrading. Free browser storage or export your old dossier first.'); }
- }
+ if(raw==null) return {active:null,games:[]};
+ const data=parseLibrary(raw);
+ const games=readGames(data);
+ backUpLibrary(data,raw,storage);
  return {active:games.some(g=>g.id===data.active)?data.active:null,games};
 }
+
 export function saveLibrary(library,storage=localStorage) {
- if(!library.games.every(validateSave)) throw new Error('The saved dossiers failed validation.');
- storage.setItem(KEY,JSON.stringify({version:2,...library}));
+ if(!Array.isArray(library?.games)||library.games.length>30||!library.games.every(validateSave)) throw new Error('The saved dossiers failed validation.');
+ checkUniqueIds(library.games);
+ const raw=storage.getItem(KEY);
+ if(raw!=null) {
+  const data=parseLibrary(raw);
+  if(data.version===VERSION) {
+   if(!data.games.every(validateSave)) throw new Error(LIBRARY_ERROR);
+   checkUniqueIds(data.games);
+  } else {
+   readGames(data);
+   backUpLibrary(data,raw,storage);
+  }
+ }
+ storage.setItem(KEY,JSON.stringify({version:VERSION,active:library.active,games:library.games}));
 }
+
 export function exportSave(game) {
  if(!validateSave(game)) throw new Error('Cannot export an invalid save.');
- return JSON.stringify({format:'aatd-save',version:2,game},null,2);
+ return JSON.stringify({format:'aatd-save',version:VERSION,game},null,2);
 }
+
 export function importSave(raw) {
  if(raw.length>1000000) throw new Error('That save file is too large.');
  const data=JSON.parse(raw);
- if(data?.format!=='aatd-save'||![1,2].includes(data.version)||data.game?.version!==data.version) throw new Error('This is not a supported dossier save.');
+ if(data?.format!=='aatd-save'||!SUPPORTED_VERSIONS.includes(data.version)||data.game?.version!==data.version) throw new Error('This is not a supported dossier save.');
  return migrateSave(data.game);
 }
