@@ -1,6 +1,6 @@
 # Playable opening: scope and interpretation
 
-The opening and Harding sections below record v0.1–v0.2 behavior. See the v0.3 notes for current calendar and save behavior.
+The opening and Harding sections below record v0.1–v0.2 behavior. See the v0.3 and v0.4 notes for current calendar and save behavior.
 
 ## Source mapping
 
@@ -70,3 +70,11 @@ Resting at home plays through the wake time. Travel, research, and waiting can c
 Meal periods count on their start date and must start six hours apart, including across midnight. Meal periods make up yesterday's debt first. Unpaid debt expires with one health lost at midnight, and missed current periods carry one day forward. Where food is unavailable, a one-hour substitute rest counts as a period and costs at most one health per date. On a date with a fasting penalty, daily natural healing is skipped. A night without a sleep block by 8 AM adds eight hours to the next block. These timing choices resolve ambiguities in the source. Sleep at home is available from 8 PM into the early morning, through September 8.
 
 Save schema 3 preserves historical meals, notes, clues, and pending dice. A migrated rest checkpoint starts at its already-recorded wake time with prior-day meal debt initialized. A migrated late-night checkpoint resumes in place with its original exit requirements. Boston still ends the preview.
+
+
+## Boston, New York and Arkham services (v0.4.0)
+
+- Rail travel follows entries 16, 64, and 146. Schedules use the in-game date, including the 12:30 AM Boston arrival. Local travel stays within the current city. Legacy Boston checkpoints resume in place with the train schedule available.
+- Arkham's store uses a fixed selection of ordinary purchases without debiting cash, consistent with the equipment rules on p. 7. Hospital recovery uses Luck and the appropriate D3 roll for the first 24-hour period and one point for each additional 24-hour period. Meals and sleep are scheduled during treatment and hospital recovery replaces ordinary daily healing.
+- At the New York library, each topic takes two hours and counts toward the two topics per visit. Follow-up rolls are once per visit. A successful language check takes two additional hours for its book. The first reading at entry 140 grants one Mythos and costs one Sanity. Entries 117 and 182 unlock cropped source illustrations. Entry 25 shares its existing Arkham clue.
+- Boston lodging with friends and the New York hotel use the existing continuous sleep rules. The hotel offers room service. Rail and lodging prices are not specified in the source entries, so this version follows the general rule allowing reasonable expenses without bookkeeping.

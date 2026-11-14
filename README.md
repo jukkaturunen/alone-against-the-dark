@@ -14,7 +14,7 @@ Open the printed local URL (normally http://127.0.0.1:4173).
 
 ## Current playable scope
 
-Play the opening telegram and prepare in Arkham across multiple days before taking the train to Boston. Resting at home through 8 September advances to the next morning. Old rest and late-night saves resume automatically. Boston is the current endpoint. Shopping, medical treatment, and the onward adventure are pending.
+Play the opening telegram and prepare in Arkham across multiple days before taking the train through Boston to New York. Resting at home through 8 September advances to the next morning. Old rest and late-night saves resume automatically. Buy supplies or recover health in Arkham. In New York, research at the public library, eat at Grand Central, or stay at the hotel. Older Boston checkpoints now resume at the station. The ocean crossing is pending.
 
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 

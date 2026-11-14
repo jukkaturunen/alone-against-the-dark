@@ -59,7 +59,7 @@ test('portable and browser migration preserve the version 1 pending roll and Luc
  const browser=memory(originalLibrary(legacy.game));
  const migrated=importSave(JSON.stringify(legacy));
  assert.deepEqual(loadLibrary(browser).games[0],migrated);
- assert.equal(migrated.version,3);
+ assert.equal(migrated.version,4);
  assert.equal(migrated.time,legacy.game.time);
  assert.equal(migrated.notes,legacy.game.notes);
  assert.equal(migrated.pending.roll,84);
@@ -127,25 +127,25 @@ test('portable and browser migration reopen the version 2 checkpoints at their s
  for(const reopened of [rest,depot,harding]) {
   assert.equal(reopened.flags.endReason,undefined);
  }
- for(const [open,old] of [[boston,before.boston],[ending,before.ending]]) {
-  assert.equal(open.phase,old.phase);
-  assert.equal(open.entry,old.entry);
-  assert.equal(open.location,old.location);
-  assert.equal(open.time,old.time);
-  assert.deepEqual(actions(open),[]);
- }
+ assert.equal(boston.phase,'playing');
+ assert.equal(boston.entry,64);
+ assert.equal(boston.time,before.boston.time);
+ assert.equal(act(boston,'rail-grandCentral-10').entry,146);
+ assert.equal(ending.phase,'ending');
+ assert.equal(ending.entry,574);
+ assert.deepEqual(actions(ending),[]);
  assert(library.games.every(validateSave));
 
  assert.equal(browser.getItem(KEY),raw);
  assert.equal(browser.getItem(BACKUP_V3),raw);
  saveLibrary(library,browser);
- assert.equal(JSON.parse(browser.getItem(KEY)).version,3);
+ assert.equal(JSON.parse(browser.getItem(KEY)).version,4);
  assert.equal(browser.getItem(BACKUP_V1),originalLibrary(legacy.game));
  assert.equal(browser.getItem(BACKUP_V3),raw);
  assert.deepEqual(loadLibrary(browser),library);
  for(const game of library.games) {
   const exported=exportSave(game);
-  assert.equal(JSON.parse(exported).version,3);
+  assert.equal(JSON.parse(exported).version,4);
   assert.deepEqual(importSave(exported),game);
  }
 });
@@ -157,7 +157,7 @@ test('a direct upgrade write backs up the source and a failed backup preserves t
  const unblocked=memory(raw);
  saveLibrary(library,unblocked);
  assert.equal(unblocked.getItem(BACKUP_V3),raw);
- assert.equal(JSON.parse(unblocked.getItem(KEY)).version,3);
+ assert.equal(JSON.parse(unblocked.getItem(KEY)).version,4);
 
  const original=memory(raw);
  const blocked={
@@ -191,4 +191,16 @@ test('reject invalid legacy records and unknown versions without touching browse
   assert.equal(browser.getItem(BACKUP_V3),null);
  }
  assert.throws(()=>importSave(JSON.stringify({format:'aatd-save',version:3,game:rest})));
+});
+
+test('v0.3 Boston checkpoint reopens and browser preserves the old library',()=>{
+ const {boston}=legacyDossiers();
+ const v3={...boston,version:3,mealDebt:0,fastingToday:false,sleepDebt:0,sleptNight:at(1,0)};
+ const raw=originalLibrary(v3), store=memory(raw);
+ const upgraded=loadLibrary(store);
+ assert.equal(upgraded.games[0].phase,'playing');
+ assert.equal(upgraded.games[0].time,v3.time);
+ assert.equal(store.getItem('aatd.dossiers.backup-before-v4'),raw);
+ saveLibrary(upgraded,store);
+ assert.deepEqual(loadLibrary(store),upgraded);
 });

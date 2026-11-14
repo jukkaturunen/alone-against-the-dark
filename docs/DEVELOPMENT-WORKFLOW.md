@@ -11,8 +11,10 @@ Approved by the user on 14 November 2026 to reduce quota consumption.
 - Verify source references, outgoing links, conditions and consequences. Run focused tests while implementing, then one integration test/build pass. Browser verification should cover changed user flows rather than repeat unchanged flows.
 - Commit finished playable batches and maintain progress records. Parallelism reduces elapsed time but does not guarantee lower total account usage.
 
+## Sprint reports
+
+Report the cumulative number of distinct, reachable numbered entries out of 593 at the end of every sprint, along with the net change. Count scenes and entries represented by unlockable evidence once each. Exclude prepared but unreachable entries.
+
 ## Next milestone
 
-Rest and continue tomorrow: calendar-aware hours and travel, daily attempt resets, meal/sleep consequences, and migration of existing rest/day-end saves. Preserve Boston as an explicit unfinished-content boundary until onward entries exist.
-
-Before implementation, reconcile `DAY-RULES.md` with `CONTINUATION-DESIGN.md`. These preparation notes are worker output for review, not implemented behavior.
+Continue the New York location table and build the route to embarkation. Use connected branches as worker assignments.

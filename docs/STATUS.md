@@ -34,9 +34,15 @@ Updated: 14 November 2026.
 - Version 1 and 2 dossiers upgrade on load. Rest and late-night checkpoints reopen at their saved timestamps. The browser retains a backup of the old library.
 - Verified the migrated next morning in the browser and passed the automated suite and production build.
 
+## v0.4.0
+
+- 73 of 593 reachable entries, up 23 from v0.3.0 (50). Count includes reachable evidence-only entries and deduplicates entry 25. Prepared entries 68 and 188 remain excluded.
+- Enabled Arkham’s store and hospital. Added both directions of rail travel through Boston, Grand Central meals, the New York hotel, and all seven library topics with follow-up checks and two illustrated clues.
+- Schema 4 reopens Boston checkpoints at their original date and time, keeps a browser backup, and supports the 12:30 AM Boston arrival.
+
 ## Next step
 
-Build connected content batches for Arkham services and onward travel from Boston. Follow [DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md) for delegation and [CONTINUATION-DESIGN.md](CONTINUATION-DESIGN.md) for content conventions. Vercel deployment and music remain later steps.
+Complete more of the New York location table and add embarkation. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock} from '../web/engine.js';
+import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions} from '../web/engine.js';
 import {SUGGESTED} from '../web/data.js';
 import {exportSave,importSave,loadLibrary,saveLibrary} from '../web/storage.js';
 const fresh=()=>newGame('test-dossier','Test',SUGGESTED);
@@ -11,7 +11,7 @@ const memory=()=>{const values=new Map();return {getItem:k=>values.get(k),setIte
 test('creation requires exactly 150 points and validates every skill',()=>{assert(validAllocation(SUGGESTED));assert.throws(()=>newGame('x','x',{}));assert(!validAllocation({...SUGGESTED,'Fake':1}));assert(!validAllocation({'Library Use':150}));assert(!validAllocation({...SUGGESTED,'Library Use':19.5}));assert(validateSave(fresh()));});
 test('opening gates travel and unlocks only the telegram',()=>{const s=fresh();assert.throws(()=>travel(s,'bank'));assert.throws(()=>act(s,'begin'));const read=act(s,'telegram');assert.deepEqual(read.clues,['telegram']);assert.equal(s.clues.length,0);const next=act(read,'begin');assert.equal(next.time,MORNING);assert.equal(next.entry,102);assert.equal(next.sleep,8);assert(validateSave(next));});
 test('bank arrival must be within opening hours and withdrawal cannot duplicate cash',()=>{let s=morning();assert.throws(()=>travel(s,'bank'));s=travel(wait(s,2),'bank');assert.equal(clock(s.time),'9:00 AM');s=act(s,'withdraw');assert.equal(s.cash,2200);assert.equal(s.bank,0);assert.throws(()=>act(s,'withdraw'));assert(validateSave(s));});
-test('travel is one hour and unsupported destinations do not change state',()=>{const s=news();assert.equal(clock(s.time),'8:00 AM');assert.throws(()=>travel(s,'store'));assert.throws(()=>travel(s,'newspaper'));assert.equal(s.entry,60);});
+test('travel is one hour and distant destinations do not change state',()=>{const s=news();assert.equal(clock(s.time),'8:00 AM');assert.throws(()=>travel(s,'grandCentral'));assert.throws(()=>travel(s,'newspaper'));assert.equal(s.entry,60);});
 test('research consumes an hour, locks movement, and persists pending roll',()=>{const s=news(),rolled=act(s,'news-library',()=>84);assert.equal(rolled.time-s.time,3600000);assert.equal(rolled.pending.roll,84);assert.throws(()=>act(rolled,'news-library',()=>1));assert.throws(()=>travel(rolled,'home'));const copy=importSave(exportSave(rolled));assert.equal(copy.pending.roll,84);assert(validateSave(copy));});
 test('Luck changes a failed skill roll and permanently reduces Luck',()=>{const s=act(news(),'news-library',()=>84);assert.equal(luckCost(s),4);const result=resolveRoll(s,true);assert.equal(result.luck,46);assert(result.clues.includes('mylonas'));assert.equal(result.lastRoll.level,'Regular success');assert.equal(result.lastRoll.adjusted,80);assert(validateSave(result));assert.throws(()=>resolveRoll(result));});
 test('failed newspaper check cannot be retried or reveal the clue',()=>{const s=resolveRoll(act(news(),'news-library',()=>90));assert(!s.clues.includes('mylonas'));assert.throws(()=>act(s,'news-library',()=>1));assert.equal(s.attempts['news-library'],1);});
@@ -22,7 +22,7 @@ test('library research can finish at closing but cannot start at closing',()=>{l
 test('meals take one hour with six hours between start times',()=>{let s=act(morning(),'eat');assert.equal(clock(s.time),'7:00 AM');assert.throws(()=>act(s,'eat'));s=wait(s,5);s=act(s,'eat');assert.equal(s.meals.length,2);assert.equal(clock(s.time),'1:00 PM');assert.throws(()=>act(s,'eat'));assert(validateSave(s));});
 test('Dean branch funds tickets without granting spendable cash',()=>{let s=travel(wait(morning(),1),'university');s=act(s,'dean');assert.throws(()=>travel(s,'home'));s=act(s,'resign');assert.equal(s.entry,186);assert.equal(s.flags.ticketFunded,true);assert.equal(s.cash,0);assert(validateSave(s));});
 test('abandonment is an ending and not an investigator death',()=>{const s=act(act(travel(wait(morning(),1),'university'),'dean'),'abandon');assert.equal(s.phase,'ending');assert.equal(s.entry,574);assert.equal(actions(s).length,0);assert(validateSave(s));});
-test('train includes waiting time and completes at Boston without charging local travel again',()=>{let s=travel(morning(),'depot');s=act(s,'train-9');assert.equal(clock(s.time),'10:00 AM');assert.equal(s.entry,64);assert.equal(s.location,'boston');assert.equal(s.phase,'complete');assert(validateSave(s));});
+test('train includes waiting time and arrives in Boston without charging local travel again',()=>{let s=travel(morning(),'depot');s=act(s,'train-9');assert.equal(clock(s.time),'10:00 AM');assert.equal(s.entry,64);assert.equal(s.location,'boston');assert.equal(s.phase,'playing');assert(validateSave(s));});
 test('sleep at home wakes on the next day with meals due and further choices',()=>{
  const awake=act(wait(morning(),14),'rest');
  assert.equal(awake.phase,'playing');
@@ -107,4 +107,60 @@ test('October newspaper report opens and returns to the newspaper',()=>{
  s=act(s,'october-news');
  assert.equal(s.entry,172);
  assert.equal(act(s,'news-return').entry,60);
+});
+
+test('Boston connection and half-hour return preserve the date and region',()=>{
+ const boston=act(travel(morning(),'depot'),'train-9');
+ const ny=act(boston,'rail-grandCentral-10');
+ assert.equal(ny.entry,146);
+ assert.equal(ny.time,Date.UTC(1931,8,2,17));
+ assert(!travelOptions(ny).some(location=>location.id==='home'));
+ assert.throws(()=>travel(ny,'home'));
+ const back=act(ny,'rail-boston-18');
+ assert.equal(back.entry,64);
+ assert.equal(back.time,Date.UTC(1931,8,3,0,30));
+ assert(validateSave(back));
+ assert.equal(act(back,'rail-depot-10').time,Date.UTC(1931,8,3,11));
+});
+
+function newYork() {
+ const boston=act(travel(morning(),'depot'),'train-9');
+ return act(boston,'rail-grandCentral-10');
+}
+
+test('a New York library visit allows two topics and resets only after leaving',()=>{
+ let s=travel(newYork(),'nyLibrary');
+ s=act(s,'ny-study-greece');
+ s=resolveRoll(act(s,'ny-greece-edu',()=>1));
+ assert.equal(s.entry,25);
+ assert(s.clues.includes('museum'));
+ s=act(s,'ny-library-return');
+ assert(actions(s).find(a=>a.id==='ny-study-egyptology').disabled);
+ s=act(travel(s,'nyHotel'),'hotel-rest');
+ s=travel(wait(s,3),'nyLibrary');
+ assert.equal(s.nyTopics,0);
+ s=act(s,'ny-study-egyptology');
+ s=resolveRoll(act(s,'ny-egyptology-library',()=>1));
+ s=act(s,'ny-library-return');
+ s=act(s,'ny-other-topics');
+ s=act(s,'ny-study-pacific');
+ s=act(s,'ny-topics-return');
+ assert(actions(s).find(a=>a.id==='ny-study-germany').disabled);
+ assert(s.clues.includes('pacificIdols'));
+ assert(validateSave(s));
+});
+
+test('occult readings consume time on success and grant Mythos once',()=>{
+ let s=travel(newYork(),'nyHotel');
+ s=act(wait(s,2),'hotel-rest');
+ s=travel(wait(s,4),'nyLibrary');
+ s=act(s,'ny-study-occult');
+ const before=s.time;
+ s=resolveRoll(act(s,'ny-occult-latin',()=>1));
+ assert.equal(s.time,before+2*3600000);
+ assert.equal(s.mythos,1);
+ assert.equal(s.sanity,54);
+ s=act(s,'ny-occult-return');
+ assert(actions(s).find(a=>a.id==='ny-occult-latin').disabled);
+ assert.deepEqual(importSave(exportSave(s)),s);
 });

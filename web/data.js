@@ -1,9 +1,11 @@
+import { NYC_SCENES, NYC_LOCATIONS, NYC_CLUES, NYC_CHECKS } from './new-york.js';
+import { SERVICES_SCENES } from './arkham-services.js';
 import { LATER_SCENES } from './arkham-later.js';
 import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
 export const BASE_SKILLS = {
- 'Accounting':5,'Anthropology':1,'Appraise':5,'Archaeology':1,'Art/Craft (Photography)':5,'Charm':15,'Climb':20,'Credit Rating':35,'Disguise':5,'Dodge':30,'Drive Auto':20,'Electrical Repair':10,'Fast Talk':5,'Fighting (Brawl)':25,'Firearms (Handgun)':20,'Firearms (Rifle/Shotgun)':25,'First Aid':30,'History':45,'Intimidate':15,'Jump':20,'Language (German)':90,'Language (English)':60,'Language (Latin)':45,'Language (Nordic)':40,'Language (Hieroglyphics)':50,'Language (Greek)':1,'Law':5,'Library Use':60,'Listen':20,'Locksmith':1,'Mechanical Repair':10,'Medicine':1,'Natural World':10,'Navigate':10,'Occult':5,'Operate Heavy Machinery':1,'Persuade':40,'Pilot (Aircraft)':1,'Psychoanalysis':1,'Psychology':30,'Ride':5,'Science (Astronomy)':1,'Science (Cryptography)':40,'Sleight of Hand':10,'Spot Hidden':25,'Stealth':20,'Survival (Desert)':10,'Swim':20,'Throw':20,'Track':10
+ 'Accounting':5,'Anthropology':1,'Appraise':5,'Archaeology':1,'Art/Craft (Photography)':5,'Charm':15,'Climb':20,'Credit Rating':35,'Disguise':5,'Dodge':30,'Drive Auto':20,'Electrical Repair':10,'Fast Talk':5,'Fighting (Brawl)':25,'Firearms (Handgun)':20,'Firearms (Rifle/Shotgun)':25,'First Aid':30,'History':45,'Intimidate':15,'Jump':20,'Language (German)':90,'Language (English)':60,'Language (Latin)':45,'Language (Nordic)':40,'Language (Hieroglyphics)':50,'Language (Greek)':1,'Language (French)':1,'Law':5,'Library Use':60,'Listen':20,'Locksmith':1,'Mechanical Repair':10,'Medicine':1,'Natural World':10,'Navigate':10,'Occult':5,'Operate Heavy Machinery':1,'Persuade':40,'Pilot (Aircraft)':1,'Psychoanalysis':1,'Psychology':30,'Ride':5,'Science (Astronomy)':1,'Science (Cryptography)':40,'Sleight of Hand':10,'Spot Hidden':25,'Stealth':20,'Survival (Desert)':10,'Swim':20,'Throw':20,'Track':10
 };
 export const SUGGESTED = {'Library Use':20,'Spot Hidden':30,'Listen':20,'Persuade':20,'Stealth':20,'Dodge':20,'Language (Greek)':20};
 export const LOCATIONS = {
@@ -14,12 +16,14 @@ export const LOCATIONS = {
  diner:{name:'Bee’s Diner',entry:593,hours:[6,17],description:'Breakfast, lunch, and dinner.'},
  depot:{name:'Arkham Depot',entry:16,hours:[0,24],description:'Trains to Boston: 9 AM, noon, and 5 PM.'},
  harding:{name:'Harding House',entry:113,hours:[8,20],description:'Mrs. Harding keeps Gliere’s room here. Visit by day, or approach quietly at night.'},
- store:{name:'General Store',entry:38,hours:[8,17],description:'Equipment and supplies. Coming in the next build.',unavailable:true},
- hospital:{name:'Hospital',entry:585,hours:[0,24],description:'Medical treatment. Coming in the next build.',unavailable:true},
- boston:{name:'Boston Railway Station',entry:64,hours:[0,24],description:'The next leg of your journey.'}
+ store:{name:'General Store',entry:38,hours:[8,17],description:'Pick up equipment and supplies.'},
+ hospital:{name:'Hospital',entry:585,hours:[0,24],description:'Recover health with a full day of care.'},
+ boston:{name:'Boston Railway Station',entry:64,hours:[0,24],description:'Connections to Arkham and New York.',region:'boston'},
+ ...NYC_LOCATIONS
 };
 export const CLUES = {
  ...HARDING_CLUES,
+ ...NYC_CLUES,
  telegram:{title:'A telegram from Gliere',type:'Telegram · Dark 1',source:'Entry 13 · p. 12',text:'ATHENS, GREECE 9/1/31 via Kingspoint Station\n\nIN JAIL FOR ANTIQUITY THEFT — STOP — NEED HELP — STOP — CAN YOU COME STOP URGENT — STOP — SEE CORPORAL ILIONAS ATHENS BUREAU OF INVESTIGATION.\n\nGLIERE'},
  sailings:{title:'Cunard sailing schedule',type:'Travel information',source:'Entry 136 · p. 29',text:'A Cunard liner departs Pier 56 in New York City every Saturday for Athens and Alexandria, with intermediate stops. The trip takes nine days to Athens and one more to Alexandria.'},
  curator:{title:'A new curator in Athens',type:'Arkham Advertiser · 20 July 1931',source:'Entry 80 · p. 21',text:'In a gala ceremony, Zeno Pisistratos was installed as curator of the National Museum of Archaeology at Athens today. Pisistratos, an expert in Greek and Egyptian antiquities, is said to be interested in arranging exchange-exhibits with other important world museums.'},
@@ -31,6 +35,7 @@ export const CLUES = {
 };
 export const CHECKS = {
  ...HARDING_CHECKS,
+ ...NYC_CHECKS,
  'news-library':{entry:60,skill:'Library Use',clue:'mylonas',target:48,repeat:false,daily:true},
  'news-spot':{entry:60,skill:'Spot Hidden',clue:'discovery',target:125,repeat:false,daily:true},
  'news-luck':{entry:60,skill:'Luck',clue:'device',target:168,repeat:false,daily:true},
@@ -40,6 +45,8 @@ export const CHECKS = {
 export const SCENES = {
  ...HARDING_SCENES,
  ...LATER_SCENES,
+ ...NYC_SCENES,
+ ...SERVICES_SCENES,
  13:{title:'A telegram at dusk',eyebrow:'The first of September, 1931',source:'Entry 13 · pp. 11–12',paragraphs:[
  'For you, Professor Louis Grunewald, this first day of September 1931 has been tiring and uncomfortable. Light mist has covered Arkham for most of the day. You held two uninspired undergraduate classes at Miskatonic University, and you met with the new chairman of the literature Department, a giddy Technocrat.',
  'You survey your desk and see that a stack of papers to grade has already formed. You’re enjoying your second pipe of the evening, and putting off grading papers, when the doorbell rings. To your surprise, it’s a telegraphic messenger.',
@@ -56,6 +63,5 @@ export const SCENES = {
  145:{title:'Among the stacks',eyebrow:'Miskatonic University library',source:'Entry 145 · p. 30',paragraphs:['For each hour at Miskatonic’s library, attempt a Library Use or Spot Hidden roll. You may continue researching while the library is open, return to the university, or leave for another Arkham location.'],adapted:true},
  593:{title:'A place at the counter',eyebrow:'Bee’s Diner',source:'Entry 593 · p. 90',paragraphs:['Open from 6 AM to 5 PM, you can get breakfast, lunch, and dinner here. When you’ve had your fill, go to any Arkham location.']},
  16:{title:'The Boston train',eyebrow:'Arkham Depot',source:'Entry 16 · p. 13',paragraphs:['Trains to Boston leave at 9 AM, noon, and 5 PM. The trip takes one hour. You may wait for your train, or leave for another Arkham location.']},
- 64:{title:'Beyond Arkham',eyebrow:'Boston Railway Station',source:'Entry 64 · p. 19',paragraphs:['There are two trains to New York City’s Grand Central Station. One leaves at 10 AM and arrives at 5 PM; the other leaves at 4 PM and arrives at 10 PM.','Your journey has begun. This is the end of the current playable opening; New York and the voyage to Greece will follow.'],adapted:true},
  574:{title:'The world turns',eyebrow:'The end',source:'Entry 574 · p. 87',paragraphs:['You have failed. Coastlines flood, storms sweep the continents, and melting polar ice fuels the devastation. Scientists claim that the Earth has somehow shifted on its axis. Within days, much of the world of humankind is destroyed.','The City of the Old Ones has a new master, and the whole world pays for your failure.'],adapted:true}
 };

@@ -1,14 +1,21 @@
 import { BASE_SKILLS, CLUES, LOCATIONS, CHECKS } from './data.js';
-import { ENTRY_CLUES, HARDING_ENTRIES } from './harding.js';
+import { ENTRY_CLUES as HARDING_CLUES, HARDING_ENTRIES } from './harding.js';
+import { NYC_ENTRIES, NYC_ENTRY_CLUES, NYC_CHOICES, NYC_CHECKS } from './new-york.js';
+import { serviceActions, performService } from './arkham-services.js';
+const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES};
 import { LATER_CHOICES } from './arkham-later.js';
 import { readLegacySave } from './legacy-save.js';
-import { HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
+import { HOUR, HALF_HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
 export { MORNING, mealCount, mealTarget, canEat, sleepHours };
-export const VERSION = 3;
+export const VERSION = 4;
 export const START = Date.UTC(1931, 8, 1, 20);
 
 const CHARACTERISTICS = { STR:70, CON:50, SIZ:45, DEX:60, INT:70, APP:55, POW:55, EDU:93 };
-const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES};
+const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES};
+export function region(s) {
+ return LOCATIONS[s.location].region || 'arkham';
+}
+
 export function hour(s) { return new Date(s.time).getUTCHours(); }
 export function clock(time) { return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'UTC'}).format(time); }
 export function date(time) { return new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(time); }
@@ -45,7 +52,14 @@ function unlock(s,id) {
 }
 function go(s,entry) {
  s.entry=entry;
- if(!s.visited.includes(entry)) s.visited.push(entry);
+ if(!s.visited.includes(entry)) {
+  s.visited.push(entry);
+  if(entry===140) {
+   s.mythos++;
+   s.sanity=Math.max(0,Math.min(99-s.mythos,s.sanity-1));
+   log(s,'Studied the occult text. Gained 1 Cthulhu Mythos and lost 1 Sanity.');
+  }
+ }
  if(ENTRY_CLUES[entry]) unlock(s,ENTRY_CLUES[entry]);
  if(entry===46&&!s.inventory.includes('Notepaper with a map-like symbol')) s.inventory.push('Notepaper with a map-like symbol');
  if([23,45,89].includes(entry)) s.flags.hardingRejected=true;
@@ -60,15 +74,16 @@ function resetDailyAttempts(s) {
   if (dailyCheck(id)) delete s.attempts[id];
  }
 }
-function advance(s,hours,sleeping=false) {
+function advance(s,hours,sleeping=false,medicalCare=false) {
  const previousTime=s.time;
- advanceCalendar(s,hours,resetDailyAttempts,log,sleeping);
+ advanceCalendar(s,hours,resetDailyAttempts,log,sleeping,medicalCare);
  if(s.entry===102&&previousTime<LATE_ARKHAM&&s.time>=LATE_ARKHAM) go(s,147);
 }
-function officeOpen(time) { return weekday(time)&&hourOf(time)>=8&&hourOf(time)<17; }
+function officeOpen(time) { return weekday(time)&&hourOf(time)>=8&&time+HOUR<=dayStart(time)+17*HOUR; }
+function newspaperOpen(time) { return isOpen('newspaper',time)&&time+HOUR<=dayStart(time)+17*HOUR; }
 function libraryOpen(time) { return weekday(time,6)&&hourOf(time)>=9&&hourOf(time)<21; }
 function foodAvailable(s) {
- return s.entry===102&&s.time<LATE_ARKHAM || s.entry===593&&isOpen('diner',s.time);
+ return s.entry===102&&s.time<LATE_ARKHAM || s.entry===593&&s.time+HOUR<=dayStart(s.time)+17*HOUR&&isOpen('diner',s.time) || [146,583].includes(s.entry);
 }
 function laterChoiceAvailable(s,choice) {
  if(choice.id==='later-dean') return officeOpen(s.time);
@@ -78,6 +93,8 @@ function laterChoiceAvailable(s,choice) {
 export function isOpen(location,time) {
  const h=new Date(time).getUTCHours();
  if(['home','depot','boston','harding'].includes(location)) return true;
+ if(LOCATIONS[location].hours[1]===24&&LOCATIONS[location].hours[0]===0) return true;
+ if(location==='nyLibrary') return h>=9&&h<21;
  if(location==='university') return officeOpen(time)||libraryOpen(time);
  const [open,close]=LOCATIONS[location].hours;
  return weekday(time)&&h>=open&&h<close;
@@ -92,12 +109,41 @@ function checkAvailable(s,id) {
  if(!r||s.entry!==r.entry||(!r.repeat&&s.attempts[id])) return false;
  if(id==='room-mythos'&&s.flags.bookSkimmed) return false;
  if(r.clue&&s.clues.includes(r.clue)) return false;
- if(s.entry===60&&!isOpen('newspaper',s.time)) return false;
- if(s.entry===145&&!libraryOpen(s.time)) return false;
+ const duration=(r.duration??1)+(r.successDuration||0);
+ if(s.entry===60&&(!isOpen('newspaper',s.time)||s.time+duration*HOUR>dayStart(s.time)+17*HOUR)) return false;
+ if(s.entry===145&&(!libraryOpen(s.time)||s.time+duration*HOUR>dayStart(s.time)+21*HOUR)) return false;
+ if(Object.hasOwn(NYC_CHECKS,id) && ((s.attempts[id]||0)>0 || !nyResearchOpen(s,duration))) return false;
  if(s.entry===7&&s.flags.windowQuiet) return false;
  if(s.entry===28&&((id==='door-stealth')!==!!s.flags.doorOpen)) return false;
  return true;
 }
+const RAIL_ROUTES = {
+ boston:[
+  {to:'grandCentral',departures:[[10,7],[16,6]]},
+  {to:'depot',departures:[[10,1],[13,1],[18,1]]}
+ ],
+ grandCentral:[{to:'boston',departures:[[8,7],[18,6.5]]}]
+};
+
+function railOptions(s) {
+ const today=dayStart(s.time);
+ return (RAIL_ROUTES[s.location]||[]).flatMap(({to,departures}) =>
+  departures.map(([departure,hours]) => ({
+   id:`rail-${to}-${departure}`, to, time:today+departure*HOUR, arrival:today+(departure+hours)*HOUR,
+  }))
+ ).filter(train => train.time>=s.time);
+}
+
+function nyResearchOpen(s,hours) {
+ const close=dayStart(s.time)+21*HOUR;
+ return (isOpen('nyLibrary',s.time)||hours===0&&s.time===close)&&s.time+hours*HOUR<=close;
+}
+
+function nyChoiceAvailable(s,choice) {
+ if(!choice.topic) return true;
+ return (s.nyTopics||0)<2&&nyResearchOpen(s,choice.duration);
+}
+
 export function actions(s) {
  if(s.phase!=='playing'||s.pending) return [];
  const a=[], add=(id,label,detail='',disabled=false)=>a.push({id,label,detail,disabled});
@@ -109,16 +155,16 @@ export function actions(s) {
  }
  if(s.location==='home'&&s.entry===102) {
   if(s.time<LATE_ARKHAM) add('eat','Prepare a meal','1 hour · meals must be at least 6 hours apart',!canEat(s));
-  add('phone-sailings','Telephone for sailing schedules','Arkham Advertiser · 1 hour',!isOpen('newspaper',s.time));
-  add('phone-curator','Telephone for news of Athens','Arkham Advertiser · 1 hour',!isOpen('newspaper',s.time));
+  add('phone-sailings','Telephone for sailing schedules','Arkham Advertiser · 1 hour',!newspaperOpen(s.time));
+  add('phone-curator','Telephone for news of Athens','Arkham Advertiser · 1 hour',!newspaperOpen(s.time));
   if(s.time<LATE_ARKHAM) add('rest','Turn in for the night',`${sleepHours(s)} continuous hours · continue after waking`,
    (hour(s)>=8&&hour(s)<20)||s.sleptNight===nightStart(s.time));
  }
  if(s.entry===3) add('withdraw',s.bank?'Withdraw travel funds':'Funds withdrawn',s.bank?`Withdraw $${s.bank.toLocaleString('en-US')}`:'Your money is now carried cash',s.bank===0||!isOpen('bank',s.time));
  if(s.entry===60) {
-  add('sailings','Ask about ocean liners','1 hour · shipping information',!isOpen('newspaper',s.time));
-  add('curator','Ask for news of Athens','1 hour · current news',!isOpen('newspaper',s.time));
-  if(s.time>=Date.UTC(1931,9,1)) add('october-news','Ask about Gliere and Miskatonic','1 hour',!isOpen('newspaper',s.time));
+  add('sailings','Ask about ocean liners','1 hour · shipping information',!newspaperOpen(s.time));
+  add('curator','Ask for news of Athens','1 hour · current news',!newspaperOpen(s.time));
+  if(s.time>=Date.UTC(1931,9,1)) add('october-news','Ask about Gliere and Miskatonic','1 hour',!newspaperOpen(s.time));
  }
  for(const [id,r] of Object.entries(CHECKS)) {
   if(r.entry!==s.entry) continue;
@@ -144,8 +190,19 @@ export function actions(s) {
  if(s.entry===16) for(const departure of [9,12,17]) {
   if(hour(s)>departure) continue;
   const time = dayStart(s.time) + departure * HOUR;
-  add(`train-${departure}`,`Take the ${clock(time)} train`,`Arrive Boston ${clock(time+HOUR)} · current preview boundary`);
+  if(s.time>time) continue;
+  add(`train-${departure}`,`Take the ${clock(time)} train`,`Arrive Boston ${clock(time+HOUR)}`);
  }
+ for(const train of railOptions(s)) {
+  add(train.id,`Take the ${clock(train.time)} train to ${LOCATIONS[train.to].name}`,`Arrive ${clock(train.arrival)}`);
+ }
+ if(s.entry===64&&(hour(s)<8||railOptions(s).length===0)&&s.sleptNight!==nightStart(s.time)) add('boston-rest','Stay with friends in Boston',`${sleepHours(s)} continuous hours · free`);
+ if(s.entry===583) add('hotel-rest','Stay at the hotel',`${sleepHours(s)} continuous hours`,(hour(s)>=8&&hour(s)<20)||s.sleptNight===nightStart(s.time));
+ if([146,583].includes(s.entry)) add('eat','Order a meal','1 hour · meals must be at least 6 hours apart',!canEat(s));
+ if(s.location==='nyLibrary') {
+  for(const choice of NYC_CHOICES[s.entry]||[]) add(choice.id,choice.label,choice.detail,!nyChoiceAvailable(s,choice));
+ }
+ if([38,585].includes(s.entry)) a.push(...serviceActions(s,isOpen));
  if(s.entry===113) {
   const late=hour(s)>=20||hour(s)<8;
   if(!late) {
@@ -156,7 +213,7 @@ export function actions(s) {
   }
   if(late) add('porch','Approach the quiet porch','Enter the nighttime branch');
  }
- if([23,45,89].includes(s.entry)) add('wait-for-night','Wait until the house is quiet',hour(s)<20?`Advance to 8 PM · ${20-hour(s)} hours`:'Approach the porch');
+ if([23,45,89].includes(s.entry)) add('wait-for-night','Wait until the house is quiet',hour(s)<20?`Advance to 8 PM · ${(dayStart(s.time)+20*HOUR-s.time)/HOUR} hours`:'Approach the porch');
  if(s.entry===90) { add('window','Try the window','No additional hour'); add('door','Try the door','No additional hour'); }
  if(s.entry===28&&!s.flags.doorOpen) { add('window','Try the window','No additional hour'); add('porch','Return to the porch','No additional hour'); }
  if(s.entry===7&&s.flags.windowQuiet) add('window-door','Try an upstairs door','Continue');
@@ -172,7 +229,7 @@ export function actions(s) {
  return a;
 }
 export function travelOptions(s) {
- return Object.entries(LOCATIONS).filter(([id])=>id!=='boston').map(([id,l])=>({id,...l,open:isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
+ return Object.entries(LOCATIONS).filter(([,l])=>(l.region||'arkham')===region(s)).map(([id,l])=>({id,...l,open:isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
 }
 function startCheck(s,id,rollFn) {
  const r=CHECKS[id],base=skill(s,r.skill),target=r.difficulty==='Hard'?Math.floor(base/2):base,roll=rollFn();
@@ -189,7 +246,7 @@ export function act(original,id,rollFn=d100) {
  if(Object.hasOwn(CHECKS,id)) { startCheck(s,id,rollFn); return s; }
  if(id==='telegram') { unlock(s,'telegram'); s.flags.telegramRead=true; return s; }
  if(id==='begin') { s.time=MORNING;s.sleep=8;s.sleptNight=dayStart(START);go(s,102);log(s,'Replied to Gliere and Ernest Holt, packed, and slept. Awake on 2 September.');return s; }
- if(id==='rest') {
+ if(['rest','hotel-rest','boston-rest'].includes(id)) {
   s.sleptNight=nightStart(s.time);
   s.sleep=sleepHours(s);
   s.sleepDebt=0;
@@ -200,8 +257,8 @@ export function act(original,id,rollFn=d100) {
  if(id==='abandon') {go(s,574);s.phase='ending';log(s,'Abandoned the journey. The investigation ends.');return s;}
  if(id.startsWith('train-')) {
   const departure=Number(id.split('-')[1]);
-  advance(s,departure-hour(s)+1);
-  s.location='boston';go(s,64);s.phase='complete';s.flags.endReason='boston';
+  advance(s,(dayStart(s.time)+(departure+1)*HOUR-s.time)/HOUR);
+  s.location='boston';go(s,64);
   log(s,'Took the train to Boston.');return s;
  }
  if(id==='eat'||id==='fast-rest') {
@@ -215,8 +272,19 @@ export function act(original,id,rollFn=d100) {
   log(s,id==='eat'?'Ate a meal.':'Rested in place of a meal.');
   return s;
  }
- const choice=(LATER_CHOICES[s.entry]||[]).find(choice=>choice.id===id);
+ const train=railOptions(s).find(train=>train.id===id);
+ if(train) {
+  advance(s,(train.arrival-s.time)/HOUR);
+  s.location=train.to;
+  go(s,LOCATIONS[train.to].entry);
+  log(s,`Took the train to ${LOCATIONS[train.to].name}.`);
+  return s;
+ }
+ const choices=s.location==='nyLibrary' ? NYC_CHOICES[s.entry] : LATER_CHOICES[s.entry];
+ const choice=(choices||[]).find(choice=>choice.id===id);
+ if(choice?.topic) s.nyTopics=(s.nyTopics||0)+1;
  if(choice) {advance(s,choice.duration);go(s,choice.target);return s;}
+ if([38,585].includes(s.entry)&&performService(s,id,{advance,log,rollFn})) return s;
  if(id==='october-news') {advance(s,1);go(s,172);return s;}
  if(id==='withdraw') {s.cash+=s.bank;s.bank=0;log(s,'Withdrew $2,200 in travel funds.');return s;}
  if(id==='wait') {advance(s,1);log(s,'Waited one hour.');return s;}
@@ -227,7 +295,7 @@ export function act(original,id,rollFn=d100) {
  if(id==='resign') {go(s,186);s.flags.ticketFunded=true;log(s,'The university agreed to pay for a round-trip ticket.');return s;}
  const conversations={'harding-fast':23,'harding-charm':45,'harding-ask':67,'harding-bribe':89};
  if(Object.hasOwn(conversations,id)) {advance(s,1);go(s,conversations[id]);log(s,'Spoke with Mrs. Harding.');return s;}
- if(id==='wait-for-night') {advance(s,Math.max(0,20-hour(s)));go(s,90);log(s,'Waited for nightfall at Harding House.');return s;}
+ if(id==='wait-for-night') {advance(s,Math.max(0,(dayStart(s.time)+20*HOUR-s.time)/HOUR));go(s,90);log(s,'Waited for nightfall at Harding House.');return s;}
  if(id==='skim-book') {
   advance(s,1);s.mythos+=3;s.sanity=Math.min(s.sanity,99-s.mythos);s.flags.bookSkimmed=true;unlock(s,'nameless');
   s.inventory.push('Nameless Cults (Golden Goblin Press edition)');log(s,'Read Nameless Cults for one hour; gained 3 Cthulhu Mythos points.');return s;
@@ -266,6 +334,11 @@ export function travel(original,destination) {
  if(!option||option.disabled) throw new Error('That destination is not available.');
  if(!option.open) throw new Error('That location will be closed when you arrive.');
  const s=structuredClone(original);advance(s,1);s.location=destination;
+ delete s.flags.hospitalTreated;
+ if(destination==='nyLibrary') {
+  s.nyTopics=0;
+  for(const id of Object.keys(NYC_CHECKS)) delete s.attempts[id];
+ } else delete s.nyTopics;
  let entry=LOCATIONS[destination].entry;
  if(destination==='harding'&&(hour(s)>=20||hour(s)<8)) entry=90;
  if(destination==='home'&&s.time>=LATE_ARKHAM) entry=147;
@@ -288,17 +361,20 @@ function validRoll(p,s,pending) {
 }
 export function validateSave(s) {
  if(!plain(s)||s.version!==VERSION||!str(s.id,100)||!s.id||!str(s.name,60)||!validAllocation(s.allocation)) return false;
- if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,3)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,2200)||s.bank+s.cash!==2200||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
+ if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HALF_HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,4)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,2200)||s.bank+s.cash>2200||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
  if(!Object.hasOwn(LOCATIONS,s.location)||!['playing','complete','ending'].includes(s.phase)||!Array.isArray(s.clues)||s.clues.length>Object.keys(CLUES).length||!s.clues.every(c=>Object.hasOwn(CLUES,c))||new Set(s.clues).size!==s.clues.length) return false;
  if(!ENTRIES[s.location]?.includes(s.entry)||!plain(s.flags)) return false;
- const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed'];
+ const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed','hospitalTreated'];
  if(Object.entries(s.flags).some(([k,v])=>k==='endReason'?v!=='boston':!boolFlags.includes(k)||typeof v!=='boolean')) return false;
+ if(s.flags.hospitalTreated&&s.entry!==585) return false;
+ if(s.nyTopics!==undefined&&(s.location!=='nyLibrary'||!num(s.nyTopics,0,2))) return false;
  if(s.flags.caughtOnEntry&&![141,2,11,150].includes(s.entry)) return false;
- if(s.phase==='playing'&&(s.flags.endReason||s.location==='boston'||s.entry===574)) return false;
- if(s.phase==='complete'&&!(s.flags.endReason==='boston'&&s.entry===64)) return false;
+ if(s.flags.endReason!==undefined) return false;
+ if(s.phase==='playing'&&s.entry===574) return false;
+ if(s.phase==='complete') return false;
  if(s.phase==='ending'&&s.entry!==574) return false;
  if(!str(s.notes,20000)||!Array.isArray(s.inventory)||s.inventory.length>100||!s.inventory.every(i=>str(i,200))||!Array.isArray(s.log)||s.log.length>15000||!s.log.every(l=>plain(l)&&num(l.time,START,s.time)&&str(l.text,500))) return false;
- if(!Array.isArray(s.meals)||s.meals.length>15000||!s.meals.every((t,i)=>num(t,MORNING,s.time)&&t%HOUR===0&&(!i||t-s.meals[i-1]>=6*HOUR))) return false;
+ if(!Array.isArray(s.meals)||s.meals.length>15000||!s.meals.every((t,i)=>num(t,MORNING,s.time)&&t%HALF_HOUR===0&&(!i||t-s.meals[i-1]>=6*HOUR))) return false;
  if(mealCount(s)>mealTarget(s)) return false;
  if(!Array.isArray(s.visited)||s.visited.length>80||!s.visited.every(e=>Object.values(ENTRIES).flat().includes(e))||!plain(s.attempts)||!Object.entries(s.attempts).every(([id,n])=>Object.hasOwn(CHECKS,id)&&num(n,1,15000))) return false;
  if(s.pending!==null&&!validRoll(s.pending,s,true)) return false;
@@ -306,9 +382,9 @@ export function validateSave(s) {
  return true;
 }
 export function migrateSave(original) {
- const s=original?.version===VERSION ? structuredClone(original) : readLegacySave(original);
+ const s=[3,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
  if(s.version===2) {
-  s.version=VERSION;
+  s.version=3;
   s.mealDebt=0;
   s.fastingToday=false;
   s.sleepDebt=0;
@@ -319,6 +395,13 @@ export function migrateSave(original) {
    resetDailyAttempts(s);
   }
   if(['rest','dayEnd'].includes(s.flags.endReason)) {
+   s.phase='playing';
+   delete s.flags.endReason;
+  }
+ }
+ if(s.version===3) {
+  s.version=VERSION;
+  if(s.phase==='complete'&&s.entry===64&&s.location==='boston'&&s.flags?.endReason==='boston') {
    s.phase='playing';
    delete s.flags.endReason;
   }

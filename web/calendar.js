@@ -1,4 +1,5 @@
 export const HOUR = 3600000;
+export const HALF_HOUR = HOUR / 2;
 export const DAY = 24 * HOUR;
 export const MORNING = Date.UTC(1931, 8, 2, 6);
 export const LATE_ARKHAM = Date.UTC(1931, 8, 9);
@@ -23,11 +24,11 @@ export function canEat(state) {
 }
 export function sleepHours(state) { return 8 + state.sleepDebt; }
 
-export function advanceCalendar(state, hours, onMidnight, log, sleeping = false) {
+export function advanceCalendar(state, hours, onMidnight, log, sleeping = false, medicalCare = false) {
  const until = state.time + hours * HOUR;
- for (let time = state.time + HOUR; time <= until; time += HOUR) {
+ for (let time = state.time + HALF_HOUR; time <= until; time += HALF_HOUR) {
   const hour = hourOf(time);
-  if (hour === 0) {
+  if (time === dayStart(time)) {
    const periods = mealCount(state);
    const overdue = periods < state.mealDebt;
    const deferred = Math.max(0, 2 - Math.max(0, periods - state.mealDebt));
@@ -37,7 +38,7 @@ export function advanceCalendar(state, hours, onMidnight, log, sleeping = false)
    if (overdue && !state.fastingToday) {
     state.hp = Math.max(0, state.hp - 1);
     log(state, 'An overdue meal was missed. Lost 1 health from fasting.');
-   } else if (!overdue && !state.fastingToday) {
+   } else if (!overdue && !state.fastingToday && !medicalCare) {
     state.hp = Math.min(9, state.hp + 1);
    }
    state.fastingToday = false;
@@ -45,8 +46,8 @@ export function advanceCalendar(state, hours, onMidnight, log, sleeping = false)
   } else {
    state.time = time;
   }
-  if (hour === 8 && sleeping) state.sleptNight = dayStart(time) - DAY;
-  if (hour === 8 && time > MORNING && state.sleptNight !== dayStart(time) - DAY) {
+  if (time % HOUR === 0 && hour === 8 && sleeping) state.sleptNight = dayStart(time) - DAY;
+  if (time % HOUR === 0 && hour === 8 && time > MORNING && state.sleptNight !== dayStart(time) - DAY) {
    state.sleepDebt += 8;
    log(state, 'Missed a night’s sleep. The next sleep block needs eight more hours.');
   }
