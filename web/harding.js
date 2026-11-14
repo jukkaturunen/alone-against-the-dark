@@ -1,0 +1,70 @@
+// Harding House entry references use the adventure's printed page numbers.
+export const HARDING_ENTRIES = [113,23,45,67,89,90,7,28,52,2,11,141,51,150,24,29,32,49,72,121,124,212,282,208,53,46,68,188];
+export const HARDING_CLUES = {
+ starMap:{title:'Gliere’s map of the heavens',type:'Research notes',source:'Entries 72 and 24 · pp. 21, 13',text:'A constellations map lies on one of the shelves. It resembles the copy of Ptolemy’s map in Miskatonic University’s collection, but the star patterns are twisted or completely skewed. Some stars are missing altogether.'},
+ manuscript:{title:'The Great Upheaval Myths',type:'Manuscript · T. Gliere',source:'Entry 32 · p. 14',text:'“The Great Upheaval Myths Correlated with Climatic Change.”\n\nGliere’s manuscript collects tales of sunken and frozen lands, from Atlantis to Mu and many you do not recognize. He has sought historical and physical evidence for the legends, and seems to have found common dates for devastation myths in nearly every culture.'},
+ glyphNotes:{title:'Old, heavens, cold',type:'Gliere’s handwritten notes',source:'Entry 29 · p. 14',text:'Strange, bird-like markings appear alongside words in Gliere’s familiar handwriting. Three words seem paired with the symbols: “old,” “heavens,” and “cold.”'},
+ glyphWords:{title:'Four deciphered words',type:'Translation notes',source:'Entry 212 · p. 41',text:'You decipher four words from the hieroglyphics: “ones,” “spin,” “city,” and “top.” The rest baffle you.'},
+ glyphHistory:{title:'Four more hieroglyphs',type:'Translation notes',source:'Entry 282 · p. 51',text:'You understand four more hieroglyphs: “Akhenaten,” “tomb,” “sunrise,” and “secret.”'},
+ shoggoth:{title:'A shape covered in eyes',type:'Mythos interpretation',source:'Entry 208 · p. 40',text:'The symbol displays a strange mucous-like creature, covered in eyes and mouths—a shoggoth. A hideous monster capable of transforming its great mass into all manner of tools and shapes.'},
+ velikovsky:{title:'A letter from Palestine',type:'Correspondence · Velikovsky',source:'Entry 53 · p. 18',text:'A letter from Mr. Velikovsky greets Gliere’s work “with joy.” It discusses the Vedas and “Polar Reversal,” the “Era of Fertility on the Frozen Continent,” and continuing work on “Freudian Heroes”—including Ikhenaten.'},
+ symbolMap:{title:'The symbol—possibly a map?',type:'A page from a notebook',source:'Entry 46 · p. 17',text:'The curious symbol looks almost like a map. You take the notepaper with you.',image:'assets/symbol-map.png',alt:'A hand-drawn compass-like symbol on squared notepaper. Four triangular arms meet at the center, labeled N, E, S, and W. An X lies within the eastern arm.'},
+ historyBookmark:{title:'A page marked “Quattara”',type:'A History of Egypt · p. 170',source:'Entry 68 · p. 20',text:'A slip of paper marks page 170 of Breasted’s A History of Egypt. Underlined phrases read “internal conflicts,” “the fall of the Old Kingdom,” “the triumph becomes complete,” and “the crocodile god.”\n\nOn the slip, in Gliere’s hand: “Quattara.”'},
+ strangeDrawing:{title:'Gliere’s strange drawing',type:'Technical sketch',source:'Entry 188 · p. 38',text:'You study the strange drawing among Gliere’s papers.',image:'assets/gliere-drawing.png',alt:'A hand-drawn network of linked mechanical profiles. Notes include Lunar?, Solar?, 27°30′N, Century Cam, differential, and Synodia m.'},
+ nameless:{title:'Nameless Cults',type:'Golden Goblin Press edition',source:'Entry 121 · pp. 27–28',text:'The book alarms and fascinates you. An initial reading grants 3 Cthulhu Mythos points, and you take it with you. A full reading and spell study are longer undertakings, outside the present opening.'}
+};
+function scene(title,source,paragraphs){return {title,eyebrow:'Harding House',source,paragraphs,adapted:true};}
+export const HARDING_SCENES = {
+ 113:scene('At Mrs. Harding’s door','Entry 113 · p. 26',['Mrs. Harding greets you amiably. She is uncertain whether she should show you Gliere’s room. How will you approach her?']),
+ 23:scene('A firm refusal','Entry 23 · p. 13',['“Don’t try and flim-flam me! This is my boarding house and I’ll allow in whom I wish!” She slams the door.','You can leave, or return to the porch later, after nightfall.']),
+ 45:scene('The door closes','Entry 45 · p. 17',['“That’s just fancy talk! I know your sort! Professor Gliere specifically instructed that no one disturb his room.” She slams the door.','You can leave, or try sneaking in later, at night.']),
+ 67:scene('She is listening','Entry 67 · p. 20',['Her eyes are wary, but she is listening. You try to persuade her to let you see Gliere’s room.']),
+ 89:scene('Money is no answer','Entry 89 · p. 23',['Mrs. Harding glares and slams the door in your face. You can leave, or return when everyone is sleeping.']),
+ 90:scene('The quiet porch','Entry 90 · p. 23',['The boarding house is quiet. You creep onto the porch. You could try the window, try the door, or leave.']),
+ 7:scene('Through the window','Entry 7 · p. 11',['The window opens smoothly, and you enter. You try to move as quietly as possible.']),
+ 28:scene('A locked door','Entry 28 · p. 14',['The door is locked. You could try the window, pick the lock, work on its mechanism, or pry open the window by force.']),
+ 52:scene('Four closed doors','Entry 52 · p. 18',['Upstairs are four bedrooms. None of the doors has a name. Any of them could be Gliere’s.','You must move quietly each time you try a room.']),
+ 2:scene('The wrong room','Entry 2 · p. 10',['You find the light switch and press it on. Mrs. Harding rises from the bedclothes, screaming. The boarders begin to stir.','Your attention is fixed on the shotgun she is reaching for. You had better run.']),
+ 11:scene('Beyond the door','Entry 11 · p. 11',['Before entering, you sense something beyond the door. You put your ear to it and listen.']),
+ 141:scene('Thunderous snores','Entry 141 · p. 30',['This room is occupied; it cannot be Gliere’s. You need to try a different door, without waking anyone.']),
+ 51:scene('“One… two…”','Entry 51 · p. 18',['Mrs. Harding appears. “Why the idea!” She sputters, gripping the shotgun. “I’ll count to three, and then I’ll pull the trigger!”','You quickly decide to leave.']),
+ 150:scene('Gliere’s room','Entry 150 · p. 31',['You cautiously turn on a light. The room is in proper professorial confusion: books of myths and fables, and bundles of clippings from foreign newspapers.','Each hour of searching permits one attempt with a skill or characteristic. Each may be tried once today. When you have finished, you must try to slip out quietly.']),
+ 24:scene('A displaced sky','Entry 24 · p. 13',['The constellations map resembles Ptolemy’s map at Miskatonic. Yet some patterns are twisted, others completely skewed—and some stars are missing.']),
+ 29:scene('Bird-like markings','Entry 29 · p. 14',['You see strange markings alongside Gliere’s familiar handwriting. Three words seem paired with the symbols: old, heavens, cold.']),
+ 32:scene('The Great Upheaval Myths','Entry 32 · p. 14',['A manuscript correlates devastation myths with climatic change. Gliere has collected tales of sunken and frozen lands, from Atlantis to Mu.','He seems to have found common dates for catastrophes described by cultures around the world.']),
+ 49:scene('A curious design','Entry 49 · p. 18',['You find a piece of notepaper with a curious design. You can examine it closely or return to your search.']),
+ 72:scene('A map of the heavens','Entry 72 · p. 21',['A map of the heavens rests on a shelf. You can take a closer look or return to your search.']),
+ 121:scene('Nameless Cults','Entry 121 · pp. 27–28',['You find the Golden Goblin Press edition of Nameless Cults. Something about it alarms and fascinates you.','An initial reading takes an additional hour, grants 3 Cthulhu Mythos points, and lets you take the book. Full reading and spell study will be added with later days.']),
+ 124:scene('Egyptian hieroglyphics','Entry 124 · p. 27',['The markings are Egyptian hieroglyphics. Can you decipher them?']),
+ 212:scene('Ones. Spin. City. Top.','Entry 212 · p. 41',['You decipher four words. The rest baffle you. Your knowledge of history may help; a successful interpretation takes another hour.']),
+ 282:scene('Akhenaten’s secret','Entry 282 · p. 51',['Four more hieroglyphs become clear: Akhenaten, tomb, sunrise, secret. The remaining symbol calls for stranger knowledge.']),
+ 208:scene('A monstrous shape','Entry 208 · p. 40',['The symbol depicts a shoggoth: a mucous-like creature covered in eyes and mouths, able to transform its great mass into tools and shapes.']),
+ 53:scene('A letter from Palestine','Entry 53 · p. 18',['Velikovsky welcomes Gliere’s work “with joy.” His letter discusses the Vedas, Polar Reversal, and an Era of Fertility on the Frozen Continent.']),
+ 46:scene('A symbol, or a map?','Entry 46 · p. 17',['You take the notepaper with you. Its curious symbol looks almost like a map.']),
+ 68:scene('Breasted’s History of Egypt','Entry 68 · p. 20',['A slip of paper marks page 170. Several phrases are underlined, and Gliere has written one word on the slip: “Quattara.”']),
+ 188:scene('A strange drawing','Entry 188 · p. 38',['You study a strange drawing among Gliere’s papers.'])
+};
+export const ENTRY_CLUES = {24:'starMap',29:'glyphNotes',32:'manuscript',212:'glyphWords',282:'glyphHistory',208:'shoggoth',53:'velikovsky',46:'symbolMap',68:'historyBookmark',188:'strangeDrawing'};
+export const HARDING_CHECKS = {
+ 'harding-persuade':{entry:67,skill:'Persuade',duration:0,successEntry:150,failureEntry:45,repeat:false,label:'Make your case'},
+ 'window-stealth':{entry:7,skill:'Stealth',duration:0,successFlag:'windowQuiet',failureEntry:51,repeat:true,label:'Move quietly through the house'},
+ 'door-locksmith':{entry:28,skill:'Locksmith',duration:0,successFlag:'doorOpen',failureEntry:90,repeat:false,label:'Pick the lock'},
+ 'door-mechanical':{entry:28,skill:'Mechanical Repair',difficulty:'Hard',duration:0,successFlag:'doorOpen',failureEntry:90,repeat:false,label:'Work on the lock mechanism'},
+ 'door-strength':{entry:28,skill:'STR',duration:0,successFlag:'doorOpen',failureEntry:90,repeat:false,label:'Pry the window open'},
+ 'door-stealth':{entry:28,skill:'Stealth',duration:0,successEntry:52,failureEntry:51,repeat:true,label:'Enter without a sound'},
+ ...Object.fromEntries(['A','B','C','D'].map((room,i)=>[`room-${room}`,{entry:52,skill:'Stealth',duration:0,successEntry:[141,2,11,150][i],failureEntry:[141,2,11,150][i],caughtOnFailure:true,repeat:true,label:`Try room ${room}`} ])),
+ 'corridor-stealth':{entry:141,skill:'Stealth',duration:0,successEntry:52,failureEntry:51,repeat:true,label:'Slip back into the corridor'},
+ 'room-astronomy':{entry:150,skill:'Science (Astronomy)',duration:1,successEntry:24,repeat:false,label:'Examine the astronomical material'},
+ 'room-cryptography':{entry:150,skill:'Science (Cryptography)',duration:1,successEntry:29,repeat:false,label:'Study the strange markings'},
+ 'room-mythos':{entry:150,skill:'Cthulhu Mythos',duration:1,successEntry:121,repeat:false,label:'Examine the esoteric books'},
+ 'room-intelligence':{entry:150,skill:'INT',duration:1,successEntry:32,repeat:false,label:'Make sense of the notes and letters'},
+ 'room-luck':{entry:150,skill:'Luck',duration:1,successEntry:49,repeat:false,label:'Try your luck among the papers'},
+ 'room-spot':{entry:150,skill:'Spot Hidden',duration:1,successEntry:72,repeat:false,label:'Search the shelves'},
+ 'room-exit':{entry:150,skill:'Stealth',duration:0,successEntry:90,failureEntry:51,repeat:true,label:'Slip out of the house'},
+ 'notes-intelligence':{entry:29,skill:'INT',duration:0,successEntry:124,failureEntry:150,repeat:false,label:'Identify the markings'},
+ 'notes-language':{entry:124,skill:'Language (Hieroglyphics)',duration:0,successEntry:212,failureEntry:150,repeat:false,label:'Decipher the hieroglyphics'},
+ 'notes-history':{entry:212,skill:'History',duration:0,successDuration:1,successEntry:282,failureEntry:150,repeat:false,label:'Interpret the remaining words'},
+ 'notes-mythos':{entry:282,skill:'Cthulhu Mythos',duration:0,successEntry:208,failureEntry:150,repeat:false,label:'Interpret the final symbol'},
+ 'manuscript-spot':{entry:32,skill:'Spot Hidden',duration:0,successEntry:53,failureEntry:150,repeat:false,label:'Look for related correspondence'},
+ 'bookmark-spot':{entry:68,skill:'Spot Hidden',duration:0,successEntry:188,failureEntry:150,repeat:false,label:'Look more closely through the book'}
+};

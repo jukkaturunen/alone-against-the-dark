@@ -1,0 +1,82 @@
+{
+  "format": "aatd-save",
+  "version": 1,
+  "game": {
+    "version": 1,
+    "id": "legacy-pending",
+    "name": "Version 0.1 save",
+    "time": -1209654000000,
+    "entry": 60,
+    "location": "newspaper",
+    "phase": "playing",
+    "allocation": {
+      "Library Use": 20,
+      "Spot Hidden": 30,
+      "Listen": 20,
+      "Persuade": 20,
+      "Stealth": 20,
+      "Dodge": 20,
+      "Language (Greek)": 20
+    },
+    "hp": 9,
+    "sanity": 55,
+    "luck": 50,
+    "bank": 2200,
+    "cash": 0,
+    "inventory": [
+      "Passport",
+      "Packed clothes and sundries"
+    ],
+    "clues": [
+      "telegram"
+    ],
+    "flags": {
+      "telegramRead": true
+    },
+    "attempts": {
+      "news-library": 1
+    },
+    "meals": [],
+    "sleep": 8,
+    "pending": {
+      "id": "news-library",
+      "roll": 84,
+      "target": 80,
+      "skill": "Library Use",
+      "level": "Failure"
+    },
+    "lastRoll": null,
+    "notes": "Keep these deductions across upgrades.",
+    "log": [
+      {
+        "time": -1209700800000,
+        "text": "The investigation begins at Grunewald’s home."
+      },
+      {
+        "time": -1209700800000,
+        "text": "Collected: A telegram from Gliere."
+      },
+      {
+        "time": -1209664800000,
+        "text": "Replied to Gliere and Ernest Holt, packed, and slept. Awake on 2 September."
+      },
+      {
+        "time": -1209661200000,
+        "text": "Waited one hour."
+      },
+      {
+        "time": -1209657600000,
+        "text": "Travelled to Arkham Advertiser."
+      },
+      {
+        "time": -1209654000000,
+        "text": "Library Use: rolled 84 against 80 (Failure)."
+      }
+    ],
+    "visited": [
+      13,
+      102,
+      60
+    ]
+  }
+}

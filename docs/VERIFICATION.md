@@ -49,3 +49,11 @@ The final late-night endpoint and after-hours library adjustments were verified 
 ## Remaining review
 
 User playtest of reading comfort, navigation, pace, and skill allocation is the next checkpoint. The full adventure is not yet playable. Cross-device/cloud saving, concurrent-tab coordination, full accessibility audit, later-day rules, and production hosting are not claimed as verified.
+
+## v0.2.0 — Harding House
+
+36 automated tests pass (22 original plus 14 new). New coverage includes direct conversation refusals, persuasion outcomes, exact window route, Hard difficulty and Luck, bedroom discovery consequences, travel gating, hourly research and attempt limits, translation follow-ups, initial Mythos study, late-night bounds, and migration of a genuine v0.1 pending-roll fixture. A migration test checks the exact old browser-library backup survives the first new save.
+
+Browser verification used a separate “Harding House verification” dossier. Reached the boarding house via Locations, rolled Persuade 93 against 60, refreshed and confirmed the same pending roll, spent 33 Luck, and entered the room. INT research rolled 83 against 70; spending 13 Luck unlocked the manuscript modal. The Locations screen correctly disabled all travel from the room. At 390 × 844, document width remained 390 with no horizontal overflow; the viewport override was reset. Source drawing crops were visually inspected. Screenshot: local ignored `tmp/harding-desktop.png`.
+
+Production build succeeds and includes only 10 web assets. Full source PDFs remain excluded. No Vercel deployment performed. Source-link ambiguity at entry 68 is recorded in OPENING.md.

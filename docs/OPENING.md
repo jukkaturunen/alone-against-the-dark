@@ -25,7 +25,7 @@ All references below refer to printed pages. Original PDFs remain in local `src/
 
 The build covers the evening of 1 September and the first day in Arkham on 2 September 1931. It ends at Boston, after turning in at home, or at a late-night checkpoint. Ending this preview is not treated as winning the adventure. The Dean's abandonment option is a genuine story ending.
 
-Harding House, stores, hospital, combat, sanity loss, investigator succession, onward trains, ocean travel, and later days are not implemented yet. Unavailable locations are labeled, rather than redirected or replaced with invented scenes. The first investigator is supported; arbitrary custom investigators and additional skill specialisms remain future work.
+Stores, hospital, combat, sanity loss, investigator succession, onward trains, ocean travel, and later days are not implemented yet. Unavailable locations are labeled, rather than redirected or replaced with invented scenes. The first investigator is supported; arbitrary custom investigators and additional skill specialisms remain future work.
 
 ## Explicit adaptation choices
 
@@ -42,10 +42,20 @@ Harding House, stores, hospital, combat, sanity loss, investigator succession, o
 
 ## Save contract
 
-Version 1 saves contain investigator allocation, current entry/location/time, immutable past roll log, unresolved roll, last outcome, available funds, possessions, discovered clues, flags, attempts, meals, sleep, and player notes. Imports are validated and assigned a fresh dossier ID; they never silently replace an existing dossier. Unknown versions are rejected. Corrupt browser storage is preserved and must not be overwritten automatically.
+Saves contain investigator allocation, current entry/location/time, immutable past roll log, unresolved roll, last outcome, available funds, possessions, discovered clues, flags, attempts, meals, sleep, and player notes. Imports are validated and assigned a fresh dossier ID; they never silently replace an existing dossier. Unknown versions are rejected. Corrupt browser storage is preserved and must not be overwritten automatically.
 
 Future expansion must migrate complete opening saves into an appropriate continuation, preserve pending outcomes and spent Luck, and translate recorded meals/sleep into ongoing day bookkeeping.
 
 ## Runtime choices
 
 The app uses browser-native JavaScript modules with no runtime dependencies. State transitions and source content are separate from presentation. A small Node server serves only `web/` (or `dist/` for production preview), never the repository root. The eventual Vercel build is a static site; no deployment or access configuration has been applied.
+
+## Harding House expansion (v0.2.0)
+
+- Entry 113 conversations follow the printed outcomes: Fast Talk, Charm, and bribery lead directly to refusals; Persuade calls for a roll. Each conversation costs one hour under the general interview rule. Bribery does not deduct money when refused.
+- “Respectable hours” is interpreted as 8 AM–8 PM; nighttime approach begins at 8 PM. Door/window access and procedural Stealth checks do not add an unspecified hour. Each room search costs one hour, once per listed skill per day. Follow-up History at 212 adds an hour only on success.
+- Entry 52 requires Stealth for every room attempt. On failure, the chosen room is shown before entry 51; searching and travel are blocked until that consequence is resolved. Leaving entry 150 also requires Stealth.
+- Entry 7 explicitly directs trying a door to 51, even following successful Stealth. This unusual printed route is preserved rather than silently redirected to 52.
+- Source discrepancy awaiting review: entry 68 lists incoming references from 24 and 49, but neither entry's outgoing text directs there. Entries 68/188 and the drawing are prepared in the content module, but no invented path exposes them. The reachable map-like symbol from entry 46 uses a cropped original drawing.
+- Nameless Cults initial reading takes an additional hour, grants 3 Mythos points once, and adds the book to possessions. A search is unavailable too late to finish this initial reading. Full reading, Sanity costs, and spell study remain deferred with later days. A natural 01 is treated as critical even at zero Mythos; Luck cannot purchase a critical.
+- Save schema 2 adds Mythos and explicit check difficulty/duration. Schema 1 imports and browser saves are migrated while preserving pending rolls, notes, funds, and outcomes. The original browser library is backed up before upgrading. Completed opening dossiers remain completed; later-day continuation still requires a future migration.

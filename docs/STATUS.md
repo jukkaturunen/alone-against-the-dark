@@ -24,9 +24,13 @@ Updated: 14 November 2026.
 - Passed 22 automated tests, built the static app, and exercised the main flow in the browser at desktop and phone widths. See VERIFICATION.md.
 - Prepared Vercel build configuration; no deployment has been created.
 
+- Tagged and pushed the accepted opening as v0.1.0.
+- Added Harding House conversations, stealth, research, evidence drawings, and schema-1 save migration for v0.2.0.
+- Passed 36 automated tests and browser checks of the new branch, pending-roll persistence, Luck, clue display, travel restrictions, and phone layout.
+
 ## Next step
 
-User playtest of the local opening, then address feedback before full adventure expansion. Start with Harding House and remaining Arkham branches after the opening is accepted. Preserve existing saves when adding later-day rules and continuation beyond Boston. See OPENING.md for exact boundaries and interpretation choices. Vercel deployment and music remain later steps.
+The user accepted the opening. Harding House is now playable in v0.2.0. Next expand remaining Arkham services (shopping and medical treatment), then later-day bookkeeping and the Boston continuation. Preserve existing saves when adding later-day rules and continuation beyond Boston. See OPENING.md for exact boundaries and interpretation choices. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

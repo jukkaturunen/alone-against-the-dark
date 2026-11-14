@@ -1,3 +1,4 @@
+import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
 export const BASE_SKILLS = {
@@ -11,12 +12,13 @@ export const LOCATIONS = {
  university:{name:'Miskatonic University',entry:82,hours:[8,17],description:'The History Department, Dean Wilcox, and the library.'},
  diner:{name:'Bee’s Diner',entry:593,hours:[6,17],description:'Breakfast, lunch, and dinner.'},
  depot:{name:'Arkham Depot',entry:16,hours:[0,24],description:'Trains to Boston: 9 AM, noon, and 5 PM.'},
- harding:{name:'Harding House',entry:113,hours:[8,20],description:'Gliere’s boarding house. This branch is coming next.',unavailable:true},
+ harding:{name:'Harding House',entry:113,hours:[8,20],description:'Mrs. Harding keeps Gliere’s room here. Visit by day, or approach quietly at night.'},
  store:{name:'General Store',entry:38,hours:[8,17],description:'Equipment and supplies. Coming in the next build.',unavailable:true},
  hospital:{name:'Hospital',entry:585,hours:[0,24],description:'Medical treatment. Coming in the next build.',unavailable:true},
  boston:{name:'Boston Railway Station',entry:64,hours:[0,24],description:'The next leg of your journey.'}
 };
 export const CLUES = {
+ ...HARDING_CLUES,
  telegram:{title:'A telegram from Gliere',type:'Telegram · Dark 1',source:'Entry 13 · p. 12',text:'ATHENS, GREECE 9/1/31 via Kingspoint Station\n\nIN JAIL FOR ANTIQUITY THEFT — STOP — NEED HELP — STOP — CAN YOU COME STOP URGENT — STOP — SEE CORPORAL ILIONAS ATHENS BUREAU OF INVESTIGATION.\n\nGLIERE'},
  sailings:{title:'Cunard sailing schedule',type:'Travel information',source:'Entry 136 · p. 29',text:'A Cunard liner departs Pier 56 in New York City every Saturday for Athens and Alexandria, with intermediate stops. The trip takes nine days to Athens and one more to Alexandria.'},
  curator:{title:'A new curator in Athens',type:'Arkham Advertiser · 20 July 1931',source:'Entry 80 · p. 21',text:'In a gala ceremony, Zeno Pisistratos was installed as curator of the National Museum of Archaeology at Athens today. Pisistratos, an expert in Greek and Egyptian antiquities, is said to be interested in arranging exchange-exhibits with other important world museums.'},
@@ -26,7 +28,8 @@ export const CLUES = {
  museum:{title:'A closely guarded collection',type:'Great Museums of the Modern World',source:'Entry 25 · p. 14',text:'Aristotle Mylonas, while collecting an undeniably-tremendous treasure house of Greek art, has been reluctant to loan or even to show some of the National Museum’s most interesting treasures. The Karpathos Device, for example, has not been displayed for years. Its loan to other museums is, according to Mylonas, unthinkable.'},
  myths:{title:'The destruction myths',type:'T. Gliere · The Destruction Myths',source:'Entry 70 · p. 20',text:'The myth of the cataclysm, or the upheaval, is one of the oldest tales and is found in nearly every culture. These imagined events occurred, according to some Nordic myths, three or four thousand years ago. Other legends, notably those told by the Shikastra sect of Tibet, date the world changing disaster to as recently as 850 BC.'}
 };
-export const RESEARCH = {
+export const CHECKS = {
+ ...HARDING_CHECKS,
  'news-library':{entry:60,skill:'Library Use',clue:'mylonas',target:48,repeat:false},
  'news-spot':{entry:60,skill:'Spot Hidden',clue:'discovery',target:125,repeat:false},
  'news-luck':{entry:60,skill:'Luck',clue:'device',target:168,repeat:false},
@@ -34,6 +37,7 @@ export const RESEARCH = {
  'library-spot':{entry:145,skill:'Spot Hidden',clue:'myths',target:70,repeat:true}
 };
 export const SCENES = {
+ ...HARDING_SCENES,
  13:{title:'A telegram at dusk',eyebrow:'The first of September, 1931',source:'Entry 13 · pp. 11–12',paragraphs:[
  'For you, Professor Louis Grunewald, this first day of September 1931 has been tiring and uncomfortable. Light mist has covered Arkham for most of the day. You held two uninspired undergraduate classes at Miskatonic University, and you met with the new chairman of the literature Department, a giddy Technocrat.',
  'You survey your desk and see that a stack of papers to grade has already formed. You’re enjoying your second pipe of the evening, and putting off grading papers, when the doorbell rings. To your surprise, it’s a telegraphic messenger.',
