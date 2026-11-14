@@ -35,4 +35,4 @@ ElevenLabs is a possible music provider, not connected or selected yet. Prefer g
 
 ## Review gates
 
-The high-level plan is approved. UI direction still needs to be developed with and accepted by the user before game implementation. Review the playable opening before full adventure expansion.
+The high-level plan is approved. On 14 November 2026, the user reviewed three UI concepts and accepted Investigator's dossier. Use that direction for the first playable opening. Review the playable opening before full adventure expansion.

@@ -7,7 +7,7 @@ Updated: 14 November 2026.
 - High-level plan approved; see PLAN.md.
 - Eventual deployment target: Vercel.
 - Private GitHub repository; original source PDFs remain local.
-- UI design collaboration must precede game implementation.
+- UI direction accepted: Investigator's dossier, selected by the user on 14 November 2026.
 - Ambient music is optional and deferred.
 
 ## Completed
@@ -17,10 +17,11 @@ Updated: 14 November 2026.
 - Saved the approved plan and repository housekeeping files.
 - Created and verified the private GitHub repository; initial checkpoint uploaded.
 - Prepared three interactive, spoiler-free UI concepts in the project chat: Investigator's dossier, Quiet horror, and Expedition desk. See design/UI-DIRECTIONS.md.
+- User reviewed the concepts and selected Investigator's dossier.
 
 ## Next step
 
-Get feedback on the three UI concepts, then refine the selected direction and review the key interaction flows. Do not start game implementation until the UI direction is accepted.
+Build the first playable opening using the accepted Investigator's dossier design. First inspect the actual opening entries and required rules, then implement investigator setup, choices, a skill check, elapsed time, handout access, and saving/resuming as appropriate to verified source content. The preview's fictional story and mechanics are not source material. Review the opening with the user before expanding the adventure. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

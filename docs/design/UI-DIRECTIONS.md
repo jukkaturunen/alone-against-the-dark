@@ -1,10 +1,10 @@
 # UI direction review
 
-Prepared on 14 November 2026. Awaiting user feedback; no direction is approved yet.
+Prepared and reviewed on 14 November 2026. The user selected Investigator's dossier: "let's go with 1, investigator's dossier".
 
 Three interactive concepts are presented in the project chat using the same fictional, spoiler-free study scene. They are design previews, not the game implementation. Sample checks, inventory, letter, and destinations are illustrative and do not establish adventure rules or content.
 
-## Investigator's dossier (recommended starting point)
+## Investigator's dossier (selected)
 
 Paper-like reading surface, editorial serif typography, restrained green accents, and a left sidebar containing investigator status and notebook navigation. Choices show their action and relevant check or next step.
 
@@ -33,9 +33,11 @@ Strength: supports travel planning and resource tracking. Tradeoff: feels more l
 
 No actual game saves, travel, random rolls, music, or adventure progression are implemented.
 
-## Feedback requested
+## Design decision
 
-Choose the strongest starting direction, including any elements to combine. After selection, refine that direction and review detailed interaction flows before implementation.
+Use Investigator's dossier for the playable opening. Preserve the warm paper surface, readable serif story text, restrained green accents, left character sidebar, and notebook navigation. Retain the story, investigator, journal, handouts, and locations views. On small screens, reflow navigation and preserve access to important character status.
+
+The visual direction is accepted. Refine remaining interaction details within this direction; do not restart style selection. The fictional sample scene, fixed rolls, sample destinations, and sample inventory must be replaced with verified adventure content and mechanics when building the playable opening. Review that opening with the user before expanding to the complete adventure.
 
 ## Validation
 
