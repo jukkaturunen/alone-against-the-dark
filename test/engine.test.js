@@ -164,3 +164,60 @@ test('occult readings consume time on success and grant Mythos once',()=>{
  assert(actions(s).find(a=>a.id==='ny-occult-latin').disabled);
  assert.deepEqual(importSave(exportSave(s)),s);
 });
+
+test('Cunard boards Saturday at noon and saves at the ship activity table',()=>{
+ let s=travel(newYork(),'pier');
+ assert(actions(s).find(a=>a.id==='embark').disabled);
+ assert.throws(()=>act(s,'embark'));
+ s=wait(s,54);
+ assert.equal(s.time,Date.UTC(1931,8,5));
+ s=act(s,'embark');
+ assert.equal(s.time,Date.UTC(1931,8,5,12));
+ assert.equal(s.entry,187);
+ assert.equal(s.phase,'complete');
+ assert.deepEqual(actions(s),[]);
+ assert.deepEqual(importSave(exportSave(s)),s);
+});
+
+test('consulate hours include a lunch closure and Wilentz stores at most three purchases',()=>{
+ const city=newYork();
+ assert.throws(()=>travel(city,'greekConsulate'));
+ const morning=wait(city,15);
+ const consulate=travel(morning,'greekConsulate');
+ assert(consulate.clues.includes('consulateIlionas'));
+ assert.throws(()=>travel(wait(morning,3),'greekConsulate'));
+ let store=travel(wait(morning,1),'wilentz');
+ for(const lang of ['greek','arabic','german']) store=act(store,'wilentz-buy-'+lang);
+ assert.equal(store.inventory.length,morning.inventory.length+3);
+ assert.throws(()=>act(store,'wilentz-buy-worst-journey'));
+ assert.equal(store.cash,morning.cash);
+});
+
+test('newspaper Luck gate protects the reports and later editions depend on date',()=>{
+ let s=travel(newYork(),'nySun');
+ assert(!s.clues.includes('sunFirstReports'));
+ s=resolveRoll(act(s,'ny-sun-luck',()=>99));
+ assert.throws(()=>act(s,'ny-sun-luck',()=>1));
+ s=act(wait(s,11),'ny-sun-open');
+ assert(s.clues.includes('sunFirstReports'));
+ assert.throws(()=>act(s,'ny-sun-gliere'));
+ const later=travel({...newYork(),time:Date.UTC(1931,11,1,8)},'nySun');
+ s=later;
+ for(const id of ['gliere','exhibition','disappearance','expedition']) s=act(s,'ny-sun-'+id);
+ assert.equal(s.entry,156);
+ assert.equal(s.clues.filter(id=>id.startsWith('sun')).length,5);
+ assert(validateSave(s));
+});
+
+test('street food sickness resolves its mandatory Constitution check before travel',()=>{
+ const s=travel(newYork(),'nyVendors');
+ const sick=act(s,'eat',()=>100,()=>10);
+ assert.equal(sick.entry,12);
+ assert.throws(()=>travel(sick,'nyHospital'));
+ const failed=resolveRoll(act(sick,'street-food-con',()=>100));
+ assert.equal(failed.hp,8);
+ assert.equal(failed.time,sick.time+3*3600000);
+ assert.equal(failed.entry,586);
+ assert.equal(travel(failed,'nyHospital').entry,585);
+ assert.equal(resolveRoll(act(sick,'street-food-con',()=>1)).time,sick.time);
+});

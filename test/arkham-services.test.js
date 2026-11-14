@@ -67,6 +67,8 @@ test('unsuccessful hospital Luck rolls use one d3 and treatment cannot exceed or
  const treated = act(patient, 'hospital-treatment', () => 100);
  assert.equal(treated.hp, 9);
  assert.equal(treated.luck, original.luck);
+ assert.equal(treated.sleepDebt, 0);
+ assert.equal(treated.sleptNight, Date.UTC(1931, 8, 2));
  assert(treated.log.some(entry => entry.text.includes('Recovery: 1D3 rolled')));
  assert(validateSave(treated));
 });

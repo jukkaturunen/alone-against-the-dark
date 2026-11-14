@@ -40,9 +40,15 @@ Updated: 14 November 2026.
 - Enabled Arkham’s store and hospital. Added both directions of rail travel through Boston, Grand Central meals, the New York hotel, and all seven library topics with follow-up checks and two illustrated clues.
 - Schema 4 reopens Boston checkpoints at their original date and time, keeps a browser backup, and supports the 12:30 AM Boston arrival.
 
+## v0.5.0
+
+- 85 of 593 reachable entries, up 12 from v0.4.0 (73). Entry 187 counts as the embarkation checkpoint, with its activities still in development.
+- Added the Greek Consulate, Wilentz Booksellers, New York Sun reports, taxis, food stands and the food-poisoning branch. New York’s hospital and store reuse entries 585 and 38.
+- Pier 56 lists the next Saturday sailing. Boarding advances to noon and saves the dossier at entry 187. Verified the pier in the browser and tested boarding, save restore, weekday hours, purchases, date gates, and street-food consequences.
+
 ## Next step
 
-Complete more of the New York location table and add embarkation. Vercel deployment and music remain later steps.
+Implement the Cunard activity table and arrival routes. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

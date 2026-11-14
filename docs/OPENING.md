@@ -78,3 +78,11 @@ Save schema 3 preserves historical meals, notes, clues, and pending dice. A migr
 - Arkham's store uses a fixed selection of ordinary purchases without debiting cash, consistent with the equipment rules on p. 7. Hospital recovery uses Luck and the appropriate D3 roll for the first 24-hour period and one point for each additional 24-hour period. Meals and sleep are scheduled during treatment and hospital recovery replaces ordinary daily healing.
 - At the New York library, each topic takes two hours and counts toward the two topics per visit. Follow-up rolls are once per visit. A successful language check takes two additional hours for its book. The first reading at entry 140 grants one Mythos and costs one Sanity. Entries 117 and 182 unlock cropped source illustrations. Entry 25 shares its existing Arkham clue.
 - Boston lodging with friends and the New York hotel use the existing continuous sleep rules. The hotel offers room service. Rail and lodging prices are not specified in the source entries, so this version follows the general rule allowing reasonable expenses without bookkeeping.
+
+
+## New York and embarkation (v0.5.0)
+
+- Greek Consulate 30 follows the split weekday opening hours. Wilentz 54 allows three distinct books, with normal purchase bookkeeping omitted per p. 7. Phrase books are retained for later use in Athens and Cairo.
+- The New York Sun uses the regular daily hours or a Luck check outside them. Arrival costs the usual hour of local travel. Reports unlock on the dates given by the source. Entry 190 unlocks the dispatch at entry 156 from December 1, which retains its printed December 20 dateline.
+- New York’s taxis use the shared local travel time. Street food takes one hour and triggers a Constitution check on a 10 on 1D10. Failure takes three hours and costs one health.
+- Pier 56 lists the next departure. The board action is available on the departure date through noon and advances to that departure time. Entry 187 saves the embarkation checkpoint for the future ship activity table. Tickets and travel expenses follow the optional book-keeping rule, so the purchase is implicit in boarding.

@@ -1,3 +1,6 @@
+import { CONTACT_LOCATIONS, CONTACT_SCENES, CONTACT_CLUES } from './ny-contacts.js';
+import { NEWS_LOCATIONS, NEWS_SCENES, NEWS_CLUES, NEWS_CHECKS } from './ny-news.js';
+import { NY_TRAVEL_LOCATIONS, NY_TRAVEL_SCENES, NY_TRAVEL_CHECKS } from './ny-travel.js';
 import { NYC_SCENES, NYC_LOCATIONS, NYC_CLUES, NYC_CHECKS } from './new-york.js';
 import { SERVICES_SCENES } from './arkham-services.js';
 import { LATER_SCENES } from './arkham-later.js';
@@ -19,11 +22,16 @@ export const LOCATIONS = {
  store:{name:'General Store',entry:38,hours:[8,17],description:'Pick up equipment and supplies.'},
  hospital:{name:'Hospital',entry:585,hours:[0,24],description:'Recover health with a full day of care.'},
  boston:{name:'Boston Railway Station',entry:64,hours:[0,24],description:'Connections to Arkham and New York.',region:'boston'},
- ...NYC_LOCATIONS
+ ...NYC_LOCATIONS,
+ ...CONTACT_LOCATIONS,
+ ...NEWS_LOCATIONS,
+ ...NY_TRAVEL_LOCATIONS
 };
 export const CLUES = {
  ...HARDING_CLUES,
  ...NYC_CLUES,
+ ...CONTACT_CLUES,
+ ...NEWS_CLUES,
  telegram:{title:'A telegram from Gliere',type:'Telegram · Dark 1',source:'Entry 13 · p. 12',text:'ATHENS, GREECE 9/1/31 via Kingspoint Station\n\nIN JAIL FOR ANTIQUITY THEFT — STOP — NEED HELP — STOP — CAN YOU COME STOP URGENT — STOP — SEE CORPORAL ILIONAS ATHENS BUREAU OF INVESTIGATION.\n\nGLIERE'},
  sailings:{title:'Cunard sailing schedule',type:'Travel information',source:'Entry 136 · p. 29',text:'A Cunard liner departs Pier 56 in New York City every Saturday for Athens and Alexandria, with intermediate stops. The trip takes nine days to Athens and one more to Alexandria.'},
  curator:{title:'A new curator in Athens',type:'Arkham Advertiser · 20 July 1931',source:'Entry 80 · p. 21',text:'In a gala ceremony, Zeno Pisistratos was installed as curator of the National Museum of Archaeology at Athens today. Pisistratos, an expert in Greek and Egyptian antiquities, is said to be interested in arranging exchange-exhibits with other important world museums.'},
@@ -36,6 +44,8 @@ export const CLUES = {
 export const CHECKS = {
  ...HARDING_CHECKS,
  ...NYC_CHECKS,
+ ...NY_TRAVEL_CHECKS,
+ ...NEWS_CHECKS,
  'news-library':{entry:60,skill:'Library Use',clue:'mylonas',target:48,repeat:false,daily:true},
  'news-spot':{entry:60,skill:'Spot Hidden',clue:'discovery',target:125,repeat:false,daily:true},
  'news-luck':{entry:60,skill:'Luck',clue:'device',target:168,repeat:false,daily:true},
@@ -46,6 +56,9 @@ export const SCENES = {
  ...HARDING_SCENES,
  ...LATER_SCENES,
  ...NYC_SCENES,
+ ...NY_TRAVEL_SCENES,
+ ...CONTACT_SCENES,
+ ...NEWS_SCENES,
  ...SERVICES_SCENES,
  13:{title:'A telegram at dusk',eyebrow:'The first of September, 1931',source:'Entry 13 · pp. 11–12',paragraphs:[
  'For you, Professor Louis Grunewald, this first day of September 1931 has been tiring and uncomfortable. Light mist has covered Arkham for most of the day. You held two uninspired undergraduate classes at Miskatonic University, and you met with the new chairman of the literature Department, a giddy Technocrat.',

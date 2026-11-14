@@ -12,7 +12,7 @@ const GOODS = {
 
 export const SERVICES_SCENES = {
  38: {
-  title: 'Supplies for the journey', eyebrow: 'General Store', source: 'Entry 38 · p. 16; equipment rules · p. 7', adapted: true,
+  title: 'Supplies for the journey', eyebrow: 'General Store', source: 'Entry 38 · p. 16 · Equipment rules · p. 7', adapted: true,
   paragraphs: ['The general store stocks ordinary travel supplies, a hunting knife, and a handgun.',
    'Choose what you can reasonably carry and afford. The adventure lets you record routine purchases without tracking their cost.']
  },
@@ -51,20 +51,21 @@ function d3() {
 function stayInHospital(s, advance, log) {
  const discharge = s.time + DAY;
  const today = dayStart(s.time);
- const nextMorning = today + (s.time < today + 8 * HOUR ? 8 : 32) * HOUR;
- const night = dayStart(nextMorning) - DAY;
- const sleep = s.sleptNight === night ? 0 : Math.min(24, sleepHours(s));
- const bedtime = Math.max(s.time, nextMorning - sleep * HOUR);
+ const previousNight = today - DAY;
+ const night = s.time < today + 8 * HOUR && s.sleptNight !== previousNight ? previousNight : today;
+ const morning = night + DAY + 8 * HOUR;
+ const sleep = Math.min(24, sleepHours(s));
+ const bedtime = Math.max(s.time, Math.min(morning, discharge) - sleep * HOUR);
  while (s.time < discharge) {
-  if (sleep && s.time === bedtime) {
-   s.sleptNight = night;
+  if (s.time === bedtime) {
    s.sleep = sleep;
    s.sleepDebt -= sleep - 8;
    advance(s, sleep, true, true);
+   s.sleptNight = night;
    log(s, `Slept for ${sleep} continuous hours in the hospital.`);
    continue;
   }
-  const nextEvent = s.time < bedtime && sleep ? bedtime : discharge;
+  const nextEvent = s.time < bedtime ? bedtime : discharge;
   if (s.time + HOUR <= nextEvent && canEat(s)) {
    s.meals.push(s.time);
    advance(s, 1, false, true);
