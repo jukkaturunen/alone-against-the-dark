@@ -465,3 +465,76 @@ test('Cairo museum staff investigation unlocks Keh’s fate after the cutoff',()
  assert(s.clues.includes('cairoKehFate'));
  assert(validateSave(s));
 });
+
+test('Parthenon escape preserves the warning and ring without replaying the encounter',()=>{
+ let s=travel(landfall('athens'),'athensParthenon');
+ assert.throws(()=>travel(s,'athensHarbor'));
+ s=act(s,'parthenon-sneak');
+ s=resolveRoll(act(s,'parthenon-sneak-climb',()=>1));
+ assert.equal(s.entry,33);
+ assert(s.clues.includes('parthenonWarning'));
+ assert(s.inventory.includes('Gold ring with a flaming star'));
+ s=act(s,'parthenon-rest');
+ assert.equal(s.location,'athensHotel');
+ assert.equal(s.time,Date.UTC(1931,8,15,6));
+ assert.equal(travel(s,'athensParthenon').entry,'parthenon-quiet');
+ assert.deepEqual(importSave(exportSave(s)),s);
+});
+
+test('the second Parthenon grapple uses Extreme difficulty and can end the dossier',()=>{
+ let s=travel(landfall('athens'),'athensParthenon');
+ s=act(act(s,'parthenon-hide'),'parthenon-run');
+ s=resolveRoll(act(s,'parthenon-break-grip',()=>100));
+ const pending=act(s,'parthenon-break-both',()=>15);
+ assert.equal(pending.pending.target,14);
+ const ending=resolveRoll(importSave(exportSave(pending)));
+ assert.equal(ending.phase,'ending');
+ assert.equal(ending.hp,0);
+ assert(validateSave(ending));
+});
+
+test('the Kyonas charter advances 72 hours and lands in Alexandria',()=>{
+ const s=travel(landfall('athens'),'kyonas');
+ const arrival=act(s,'kyonas-hire');
+ assert.equal(arrival.entry,195);
+ assert.equal(arrival.time-s.time,72*3600000);
+ assert.equal(arrival.hp,9);
+ assert.equal(arrival.sleepDebt,0);
+ assert(validateSave(arrival));
+});
+
+test('Fuzira respects the lunch closure and connects Cairo to the first tomb chamber',()=>{
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ assert.throws(()=>travel(cairo,'fuziraMarket'));
+ let s=travel(wait(cairo,1),'fuziraMarket');
+ s=act(s,'fuzira-travel');
+ s=act(s,'amarna-rental');
+ const departure=s.time;
+ s=act(s,'amarna-drive');
+ assert.equal(s.entry,324);
+ assert.equal(s.time-departure,48*3600000);
+ assert(!travelOptions(s).some(location=>location.id==='cairoRail'));
+ for(const id of ['amarna-pyramid','amarna-tomb-entrance','amarna-admission','amarna-enter']) s=act(s,id);
+ assert.equal(s.entry,338);
+ s=resolveRoll(act(s,'amarna-spot',()=>1));
+ assert.equal(s.entry,357);
+ assert(s.clues.includes('amarnaErasedRelief'));
+ assert.deepEqual(importSave(exportSave(s)),s);
+});
+
+test('Fuzira haggling lowers the price charged to carried cash',()=>{
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ let s=travel({...wait(cairo,1),cash:100},'fuziraMarket');
+ s=act(s,'fuzira-suppliers');
+ const before=actions(s).find(action=>action.id==='fuzira-buy-compass');
+ assert(before);
+ s=resolveRoll(act(s,'fuzira-barter-charm',()=>1));
+ const after=actions(s).find(action=>action.id==='fuzira-buy-compass-bargain');
+ assert(after);
+ const price=Number(after.detail.slice(1));
+ assert.equal(Number(before.detail.slice(1)),3*price);
+ s=act(s,after.id);
+ assert(s.inventory.includes('Compass'));
+ assert.equal(s.cash,100-price);
+ assert(validateSave(s));
+});

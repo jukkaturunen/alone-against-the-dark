@@ -111,3 +111,10 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - The Athens museum closes for lunch and the director is away from December onward. Its galleries share the archaeological report with the Arkham newspaper. Interview observations are recorded as evidence.
 - Cairo’s museum changes on October 30 and charges one in-game hour for each post-cutoff exhibit or office visit. The curator interviews and exhibits are playable. The theft and earlier confrontation branches are deferred.
 - At Piosotos, Christos can interpret automatically. The apartment encounter checks five observations before the Intelligence roll. Intelligence bonuses are capped at 99%. The card game’s twenty minutes are rounded to half an hour to match the game clock. Its $35 in winnings change carried cash.
+
+
+## The Parthenon, Fuzira, and Tell-el-Amarna (v0.9.0)
+
+- The first Parthenon visit uses the printed sunset encounter regardless of arrival hour. Breaking the second grapple uses an Extreme STR check to represent the combined opposition. The survivor’s cab and rest advance to the next morning, grant the warning and ring, and leave later visits quiet.
+- The Kyonas takes 24 hours to prepare and 48 hours to cross. The self-drive route to Tell-el-Amarna takes 48 hours each way. These actions account for provisions and overnight stops together. The driver-guide route and the tomb beyond its first chamber are pending.
+- Fuzira’s outfitters use sample prices with the printed 200% markup and a successful Hard bargain returns them to normal. These purchases debit carried cash. The dagger stall represents the three-hour prize attempt with one roll. Its piastres are not converted to dollars. The mirror encounter resolves immediate Sanity loss; its later pursuit and hired bearers are pending.
