@@ -1,6 +1,6 @@
 # Project status
 
-Updated: 14 November 2026.
+Updated: 15 November 2026.
 
 ## Decisions
 
@@ -83,9 +83,15 @@ Updated: 14 November 2026.
 - Opened scheduled routes to Bremen, the harbor and inn, the Amulet of Nodens encounter, and The Dark Sea. The ship offers cabin and deck investigations, a way to wait out the passage, and a playable victory ending aboard.
 - Normal arrivals at Antarctica base camp save at entry 520. Tested the shipboard victory and landfall, plus boarding and saved voyage progress in the browser.
 
+## v0.12.0
+
+- 447 of 593 reachable entries, up 42 from v0.11.0 (405). This includes reachable evidence-only entries and excludes 68, 188, and 421.
+- Opened all three Antarctica expedition parties, the Lost City above and below ground, and the ritual endings. Added three illustrated map handouts.
+- Save schema 7 reopens old base camp dossiers at the recorded date and adds the expedition map. Verified Trip C through a browser reload at the Lost City and checked the map handout. The automated tests cover save migration, the three trips, the combined descent check, and two playable victories.
+
 ## Next step
 
-Open the expedition parties from Antarctica base camp and the routes into the interior. Vercel deployment and music remain later steps.
+Add investigator succession and the other investigators' starting routes. Cross-region transport from the Lost City and the remaining side branches are also pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

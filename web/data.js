@@ -1,4 +1,6 @@
 import { DS_LOCATIONS, DS_SCENES, DS_CLUES, DS_CHECKS } from './dark-sea.js';
+import { AP_SCENES, AP_CLUES, AP_CHECKS } from './antarctic-approach.js';
+import { LC_SCENES, LC_CLUES, LC_CHECKS } from './lost-city.js';
 import { BR_LOCATIONS, BR_SCENES, BR_CLUES, BR_CHECKS } from './bremen.js';
 import { BR_TRAVEL_LOCATIONS, BR_TRAVEL_SCENES } from './bremen-travel.js';
 import { PUZZLE_SCENES, PUZZLE_CLUES, PUZZLE_CHECKS } from './amarna-puzzle.js';
@@ -57,7 +59,8 @@ export const LOCATIONS = {
  ...CITY_LOCATIONS,
  ...BR_TRAVEL_LOCATIONS,
  ...BR_LOCATIONS,
- ...DS_LOCATIONS
+ ...DS_LOCATIONS,
+ antarctica:{name:'Antarctica Base Camp',entry:520,region:'antarctica',hours:[0,24],description:'The Starkweather–Moore expedition camp.'}
 };
 export const CLUES = {
  ...HARDING_CLUES,
@@ -71,6 +74,8 @@ export const CLUES = {
  ...PUZZLE_CLUES,
  ...BR_CLUES,
  ...DS_CLUES,
+ ...AP_CLUES,
+ ...LC_CLUES,
  ...PAR_CLUES,
  ...CITY_CLUES,
  ...EARLY_CLUES,
@@ -98,6 +103,8 @@ export const CHECKS = {
  ...PUZZLE_CHECKS,
  ...BR_CHECKS,
  ...DS_CHECKS,
+ ...AP_CHECKS,
+ ...LC_CHECKS,
  ...EXTERIOR_CHECKS,
  ...PAR_CHECKS,
  ...CITY_CHECKS,
@@ -133,6 +140,8 @@ export const SCENES = {
  ...BR_TRAVEL_SCENES,
  ...BR_SCENES,
  ...DS_SCENES,
+ ...AP_SCENES,
+ ...LC_SCENES,
  ...COMBAT_SCENES,
  ...EARLY_SCENES,
  ...LATE_SCENES,

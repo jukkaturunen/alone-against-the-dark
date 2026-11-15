@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions} from '../web/engine.js';
+import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions,skill} from '../web/engine.js';
 import {SUGGESTED} from '../web/data.js';
 import {exportSave,importSave,loadLibrary,saveLibrary} from '../web/storage.js';
 const fresh=()=>newGame('test-dossier','Test',SUGGESTED);
@@ -629,16 +629,29 @@ function boardDarkSea() {
  return ['dark-sea-captain','dark-sea-ask-for-berth','dark-sea-take-berth'].reduce((state,id)=>act(state,id),s);
 }
 
-test('an expedition berth can reach Antarctica with a persistent arrival checkpoint',()=>{
+test('an expedition berth reaches a playable Antarctica camp',()=>{
  const ship=boardDarkSea();
  assert.equal(ship.entry,500);
  assert(validateSave(ship));
  const camp=act(act(ship,'dark-sea-make-landfall'),'dark-sea-keep-to-yourself');
  assert.equal(camp.entry,520);
- assert.equal(camp.phase,'complete');
+ assert.equal(camp.phase,'playing');
+ assert.equal(camp.location,'antarctica');
  assert(camp.time-ship.time>=27*86400000);
  assert(camp.time-ship.time<=32*86400000);
  assert.deepEqual(importSave(exportSave(camp)),camp);
+});
+
+test('a version 6 base camp checkpoint reopens without advancing time',()=>{
+ const ship=boardDarkSea();
+ const camp=act(act(ship,'dark-sea-make-landfall'),'dark-sea-keep-to-yourself');
+ const old={...camp,version:6,location:'darkSea',phase:'complete',notes:'Keep this observation.',clues:[]};
+ const restored=importSave(JSON.stringify({format:'aatd-save',version:6,game:old}));
+ assert.equal(restored.time,camp.time);
+ assert.equal(restored.location,'antarctica');
+ assert.equal(restored.phase,'playing');
+ assert.equal(restored.notes,old.notes);
+ assert(restored.clues.includes('antarcticExpeditionMap'));
 });
 
 test('investigating Jeffries’ locker can reach the sea victory ending',()=>{
@@ -660,4 +673,70 @@ test('investigating Jeffries’ locker can reach the sea victory ending',()=>{
  assert.equal(s.phase,'ending');
  assert(s.hp>0);
  assert(validateSave(s));
+});
+
+const choose = (s,...ids) => ids.reduce((state,id)=>act(state,id),s);
+const expeditionRoll = (s,id,result=1) => resolveRoll(act(s,id,()=>result));
+const expeditionCamp = ship => choose(ship,'dark-sea-make-landfall','dark-sea-keep-to-yourself');
+const lostCity = camp => choose(camp,'antarctic-join-c','antarctic-leave-the-plane','antarctic-cross-the-outskirts',
+ 'antarctic-pursue-jeffries','antarctic-follow-jeffries','antarctic-enter-the-city');
+const cavernRim = s => choose(s,'lost-city-war-west','lost-city-dome-south','lost-city-trail-figure','lost-city-enter-lower-opening');
+
+test('expedition parties advance to the printed journal dates and each can finish',()=>{
+ const camp=expeditionCamp(boardDarkSea());
+ for(const [party,day,entry,ending] of [
+  ['a',13,525,'antarctic-wait-with-blake'],['b',12,541,'antarctic-wait-for-blake'],
+ ]) {
+  const trip=act(camp,`antarctic-join-${party}`);
+  assert.equal(trip.entry,entry);
+  assert.equal(trip.time,Date.UTC(1932,1,day));
+  const end=act(trip,ending);
+  assert.equal(end.entry,574);
+  assert.equal(end.phase,'ending');
+  assert.deepEqual(importSave(exportSave(end)),end);
+ }
+ const city=lostCity(camp);
+ assert.equal(city.entry,543);
+ assert.equal(city.time,Date.UTC(1932,1,8));
+ assert(city.flags.antarcticJones);
+ assert(city.clues.includes('lostCityMap'));
+});
+
+test('a saved Lost City descent uses the lower skill, and the sanctuary amulet can win',()=>{
+ let s=choose(lostCity(expeditionCamp(boardDarkSea())),'lost-city-city-buildings',
+  'lost-city-follow-sanctuary-path','lost-city-touch-rose-amulet');
+ s=expeditionRoll(s,'lost-city-old-one-sanity');
+ s=expeditionRoll(s,'lost-city-old-one-dodge',100);
+ s=cavernRim(act(s,'lost-city-leave-new-ally'));
+ const pending=act(s,'lost-city-quiet-descent',()=>1);
+ assert.equal(pending.pending.base,Math.min(skill(s,'Jump'),skill(s,'Climb')));
+ s=resolveRoll(importSave(exportSave(pending)));
+ s=expeditionRoll(s,'lost-city-descent-luck',100);
+ s=expeditionRoll(s,'lost-city-descent-know');
+ assert.equal(s.entry,566);
+ s=act(expeditionRoll(s,'lost-city-early-sanity'),'lost-city-use-rose-before-spin');
+ assert.equal(s.entry,571);
+ assert.equal(s.phase,'ending');
+ assert.equal(s.hp,9);
+ assert(!s.inventory.includes('Rose-colored amulet'));
+ assert.deepEqual(importSave(exportSave(s)),s);
+});
+
+test('armory equipment carries to the Lost City and the dynamite ending records permanent DEX loss',()=>{
+ let ship=act(boardDarkSea(),'dark-sea-search');
+ for(const id of ['dark-sea-cabin-a-luck','dark-sea-search-chart-room','dark-sea-enter-armory']) ship=expeditionRoll(ship,id);
+ ship=choose(ship,'dark-sea-take-dynamite','dark-sea-leave-armory');
+ ship=expeditionRoll(ship,'dark-sea-exit-cabin');
+ const city=lostCity(expeditionCamp(ship));
+ let s=cavernRim(choose(city,'lost-city-city-north','lost-city-avenue-west'));
+ s=expeditionRoll(s,'lost-city-quiet-descent');
+ s=expeditionRoll(s,'lost-city-descent-luck',100);
+ s=expeditionRoll(s,'lost-city-descent-know');
+ s=expeditionRoll(s,'lost-city-early-sanity');
+ s=expeditionRoll(s,'lost-city-pedestal-throw');
+ assert.equal(s.entry,569);
+ assert.equal(s.phase,'ending');
+ assert(!s.inventory.includes('Dynamite'));
+ assert(skill(s,'DEX')>=30&&skill(s,'DEX')<=57);
+ assert.deepEqual(importSave(exportSave(s)),s);
 });

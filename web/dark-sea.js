@@ -125,6 +125,7 @@ function choice(id,label,target,extra={}) {
 function check(entry,skill,label,successEntry,failureEntry,extra={}) {
  return {entry,skill,label,successEntry,failureEntry,duration:0,...extra};
 }
+const resetOnShipDay=new Set([506,514,516,524,526,540,'dark-sea-gossip','dark-sea-leave-cabin','dark-sea-caught']);
 const returnToShip=choice('return','Return to your berth',null,{effect:'dark-sea-return'});
 const nextDay=choice('next-day','Wait until the next ship day',null,{effect:'dark-sea-next',when:s=>s.darkSea.day<s.darkSea.days});
 const land=choice('make-landfall','Wait out the voyage',null,{effect:'dark-sea-land'});
@@ -375,7 +376,9 @@ export function darkSeaChoiceEffect(s,effect,ctx) {
    else {
     s.darkSea.day++;
     s.darkSea.used=false;
-    for(const id of Object.keys(s.attempts)) if(DS_CHECKS[id]?.entry===516||DS_CHECKS[id]?.entry===506||DS_CHECKS[id]?.entry==='dark-sea-gossip'||['dark-sea-exit-cabin','dark-sea-search-chart-room','dark-sea-search-books','dark-sea-search-whisky-room','dark-sea-enter-armory'].includes(id)) delete s.attempts[id];
+    for(const id of Object.keys(s.attempts)) {
+     if(resetOnShipDay.has(DS_CHECKS[id]?.entry)) delete s.attempts[id];
+    }
     log(s,`It is now ship day ${s.darkSea.day} of ${s.darkSea.days}.`);
    }
    return true;
@@ -429,17 +432,23 @@ export function darkSeaSkillBonus(s,skill) {
  return (s.darkSea?.routes?.[514]?5:0)+(s.darkSea?.landed&&s.darkSea.routes?.[522]?10:0);
 }
 
+const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+
 export function validateDarkSea(s) {
  const v=s.darkSea;
- if(s.location!=='darkSea') return v===undefined;
- if(!v||![456,500,501].includes(v.boarded)) return false;
+ if(!['darkSea','antarctica'].includes(s.location)) return v===undefined;
+ if(!record(v)||![456,500,501].includes(v.boarded)||!Array.isArray(s.visited)||!s.visited.includes(v.boarded)) return false;
  if(v.boarded===456?!Object.hasOwn(hidingPlaces,v.hiding):v.hiding!==null) return false;
  if(!Number.isInteger(v.days)||v.days<27||v.days>32||!Number.isInteger(v.day)||v.day<1||v.day>v.days) return false;
  if(['used','landed','shoggothSeen'].some(key=>typeof v[key]!=='boolean')) return false;
- if(v.landed&&v.day!==v.days||s.time!==sailing+(v.landed?v.days*DAY:0)) return false;
- if(!v.locks||Array.isArray(v.locks)||Object.entries(v.locks).some(([key,n])=>!/^[A-H]$/.test(key)||!Number.isInteger(n)||n<1||n>v.day)) return false;
- if(!v.interviews||Array.isArray(v.interviews)||Object.entries(v.interviews).some(([key,n])=>!['captain','professor'].includes(key)||!Number.isInteger(n)||n<1||n>3)) return false;
- if(v.routes!==undefined&&(!v.routes||Array.isArray(v.routes)||Object.entries(v.routes).some(([key,val])=>!['514','522'].includes(key)||val!==true))) return false;
- if([510,511,520,530,532,574].includes(s.entry)!==v.landed) return false;
+ const landfall=sailing+v.days*DAY;
+ if(v.landed&&v.day!==v.days) return false;
+ if(!v.landed&&s.time!==sailing) return false;
+ if(v.landed&&s.time<landfall) return false;
+ if(s.location==='antarctica'&&!v.landed) return false;
+ if(!record(v.locks)||Object.entries(v.locks).some(([key,n])=>!/^[A-H]$/.test(key)||!Number.isInteger(n)||n<1||n>v.day)) return false;
+ if(!record(v.interviews)||Object.entries(v.interviews).some(([key,n])=>!['captain','professor'].includes(key)||!Number.isInteger(n)||n<1||n>3)) return false;
+ if(v.routes!==undefined&&(!record(v.routes)||Object.entries(v.routes).some(([key,val])=>!['514','522'].includes(key)||val!==true))) return false;
+ if(s.location==='darkSea'&&[510,511,520,530,532,574].includes(s.entry)!==v.landed) return false;
  return true;
 }

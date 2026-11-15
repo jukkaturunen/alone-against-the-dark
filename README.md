@@ -16,6 +16,8 @@ Open the printed local URL (normally http://127.0.0.1:4173).
 
 Play the opening telegram and prepare in Arkham across multiple days before taking the train through Boston to New York. Resting at home through 8 September advances to the next morning. Old rest and late-night saves resume automatically. Buy supplies or recover health in Arkham. In New York, research at the public library, eat at Grand Central, or stay at the hotel. Older Boston checkpoints now resume at the station. Visit New York’s contacts and board the Saturday Cunard liner at Pier 56. Play the crossing’s shipboard encounters and disembark at Athens or Alexandria. Continue to the Bureau of Investigation and Hall of Justice in Athens, explore the Alexandria docks, visit the Athens museum and Piosotos Café, or take the train to Cairo and explore its museum and Fuzira Marketplace. Search the pyramid at Tell-el-Amarna, explore the public tomb, and fill in a map of the hidden sections as you discover them.
 
+Follow the expedition lead to Bremen and board The Dark Sea. Investigate aboard, or land at Antarctica base camp and choose one of three expedition parties. The Lost City has explorable streets, underground passages, and several endings. Existing base camp dossiers resume at their saved date.
+
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 
 ## Checks and build
@@ -50,5 +52,3 @@ The production build copies only `web/` into `dist/`. `vercel.json` prepares thi
 The owner supplies three PDFs in `src/`: the adventure, handouts and ready-made investigators, and the Keeper Rulebook. Originals are excluded from Git and the web server. A fresh clone does not include them. The private repository contains the adapted opening's text and rules; it is not a public redistribution package.
 
 Alone Against the Dark © Chaosium Inc. Adventure by Matthew Costello with Mike Mason. This is a personal adaptation, not an official Chaosium product.
-
-Follow the expedition lead to Bremen and board The Dark Sea. Investigate aboard, or continue to the Antarctica base camp checkpoint.

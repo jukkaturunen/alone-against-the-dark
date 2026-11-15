@@ -132,3 +132,10 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - Athens rail and both Mediterranean sea routes use their printed schedules. Cairo flights use the printed timetable. The Athens charter flights use the same three- and eight-hour durations as the corresponding scheduled flights, since the charter entry only gives a before-noon cutoff.
 - Bremen’s berth changes on December 20. From the inn or mission, players can choose to wait with lodging and meals until the morning of December 19. The ship’s gangplank is open from 8 AM to 8 PM before departure.
 - The Dark Sea tracks voyage days separately from hourly travel, rolls the passage length once, and saves the investigation and cabin locks. Waiting out the passage preserves the printed encounter checks that apply to the route. Destroying the Top at sea can finish the investigation. Entry 520 is the base camp checkpoint for the next expansion.
+
+## Antarctica and the Lost City (v0.12.0)
+
+- Entry 520 opens all three expedition parties. The game advances directly to the dates in the expedition journals. Grunewald can join directly when travelling openly. A sailor can keep the cover identity and qualify with Navigate, Pilot (Aircraft), or Hard Survival (Desert), using the rule for related Survival specialties. Prisoners can appeal to an expedition leader.
+- The camp, City of the Old Ones, and underground intersection use illustrations from the adventure. The southwest underground passage follows entry 555's written direction to 564 where the map gives a conflicting number.
+- The combined descent uses one percentile roll against the lower of Climb and Jump. The cavern tracks Sanity loss, permanent Dexterity loss, and item use. The Old One's offer appears at entry 432. Its transport and defense powers beyond the city await the cross-region routes.
+- Schema 7 reopens entry 520 at its original landfall time. Shipboard dossiers keep their pending rolls and history.
