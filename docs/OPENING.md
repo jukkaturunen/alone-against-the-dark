@@ -96,3 +96,11 @@ Save schema 3 preserves historical meals, notes, clues, and pending dice. A migr
 - Version 5 migrates prior entry 187 checkpoints from the saved Saturday departure to Sunday morning. Checkpoints at Piraeus and Alexandria preserve landfall at noon Monday and 1 PM Tuesday, respectively.
 
 The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for the next period where an available activity can lead to an encounter. Skip to landfall passes over all remaining activities and leaves the port choice open. Both are available between encounters.
+
+
+## Athens and Alexandria (v0.7.0)
+
+- The Athens Bureau follows the 2–6 PM afternoon hours printed in entry 130 and the weekday rule in the handout. The Hall of Justice follows its own 3–7 PM window. Grunewald needs an interpreter, a phrasebook, or an allocated Greek skill to speak with the sergeant. Christos’s fee is quoted in the scene and falls under optional expense bookkeeping.
+- Alexandria’s dockside conversation requires an allocated Arabic skill. Combat in the passage uses a compact percentile sequence. The Athens moderate hotel supports the first night. Its second-night branch and the onward leads from Athens and Cairo are pending.
+- Trains and steamers follow station and harbor schedules and advance the in-game clock. The Athens-to-Cairo train branch through entry 42 and long-distance sailings will open with their destination content.
+- Save schema 6 reopens old harbor checkpoints at their recorded location and time.

@@ -53,9 +53,15 @@ Updated: 14 November 2026.
 - Schema 5 resumes old embarkation checkpoints on the first morning aboard. Verified an existing embarked save in the browser and continued past the cabin encounter to Monday.
 - 58 automated tests and the production build passed.
 
+## v0.7.0
+
+- 151 of 593 reachable entries, up 32 from v0.6.1 (119).
+- Opened the Athens Bureau of Investigation, Hall of Justice, taxi leads, and supporting city services. Added the Alexandria dockside branch, Cairo station, and scheduled rail and steamer routes.
+- Harbor checkpoints now resume at the saved arrival time. Verified an old Piraeus save through the case report and reload in the browser.
+
 ## Next step
 
-Open Athens locations from Piraeus, beginning with the Bureau of Investigation. Extend the Alexandria route toward Cairo separately. Vercel deployment and music remain later steps.
+Expand Athens locations from their leads, beginning with the National Museum and Piosotos Café. Continue Cairo from the station into the museum and other city branches. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

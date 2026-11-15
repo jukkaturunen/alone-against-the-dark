@@ -120,7 +120,7 @@ export function arrive(s,destination) {
  s.time=dayStart(s.voyage.departure)+(athens?9:10)*DAY+(athens?12:13)*HOUR;
  delete s.voyage;
  s.location=destination;
- s.phase='complete';
+ s.phase='playing';
  s.mealDebt=0;
  s.fastingToday=false;
  s.sleep=8;

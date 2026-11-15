@@ -1,3 +1,6 @@
+import { CASE_LOCATIONS, CASE_SCENES, CASE_CLUES, CASE_CHECKS } from './athens-case.js';
+import { EGYPT_LOCATIONS, EGYPT_SCENES, EGYPT_CLUES, EGYPT_CHECKS } from './alexandria-route.js';
+import { MED_LOCATIONS, MED_SCENES } from './mediterranean.js';
 import { COMBAT_SCENES, COMBAT_CHECKS } from './liner-combat.js';
 import { LINER_SCENES, LINER_ARRIVALS } from './liner.js';
 import { EARLY_SCENES, EARLY_CLUES, EARLY_CHECKS } from './liner-early.js';
@@ -12,7 +15,7 @@ import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
 export const BASE_SKILLS = {
- 'Accounting':5,'Anthropology':1,'Appraise':5,'Archaeology':1,'Art/Craft (Photography)':5,'Charm':15,'Climb':20,'Credit Rating':35,'Disguise':5,'Dodge':30,'Drive Auto':20,'Electrical Repair':10,'Fast Talk':5,'Fighting (Brawl)':25,'Firearms (Handgun)':20,'Firearms (Rifle/Shotgun)':25,'First Aid':30,'History':45,'Intimidate':15,'Jump':20,'Language (German)':90,'Language (English)':60,'Language (Latin)':45,'Language (Nordic)':40,'Language (Hieroglyphics)':50,'Language (Greek)':1,'Language (French)':1,'Law':5,'Library Use':60,'Listen':20,'Locksmith':1,'Mechanical Repair':10,'Medicine':1,'Natural World':10,'Navigate':10,'Occult':5,'Operate Heavy Machinery':1,'Persuade':40,'Pilot (Aircraft)':1,'Psychoanalysis':1,'Psychology':30,'Ride':5,'Science (Astronomy)':1,'Science (Cryptography)':40,'Sleight of Hand':10,'Spot Hidden':25,'Stealth':20,'Survival (Desert)':10,'Swim':20,'Throw':20,'Track':10
+ 'Accounting':5,'Anthropology':1,'Appraise':5,'Archaeology':1,'Art/Craft (Photography)':5,'Charm':15,'Climb':20,'Credit Rating':35,'Disguise':5,'Dodge':30,'Drive Auto':20,'Electrical Repair':10,'Fast Talk':5,'Fighting (Brawl)':25,'Firearms (Handgun)':20,'Firearms (Rifle/Shotgun)':25,'First Aid':30,'History':45,'Intimidate':15,'Jump':20,'Language (German)':90,'Language (English)':60,'Language (Latin)':45,'Language (Nordic)':40,'Language (Hieroglyphics)':50,'Language (Greek)':1,'Language (French)':1,'Language (Arabic)':1,'Law':5,'Library Use':60,'Listen':20,'Locksmith':1,'Mechanical Repair':10,'Medicine':1,'Natural World':10,'Navigate':10,'Occult':5,'Operate Heavy Machinery':1,'Persuade':40,'Pilot (Aircraft)':1,'Psychoanalysis':1,'Psychology':30,'Ride':5,'Science (Astronomy)':1,'Science (Cryptography)':40,'Sleight of Hand':10,'Spot Hidden':25,'Stealth':20,'Survival (Desert)':10,'Swim':20,'Throw':20,'Track':10
 };
 export const SUGGESTED = {'Library Use':20,'Spot Hidden':30,'Listen':20,'Persuade':20,'Stealth':20,'Dodge':20,'Language (Greek)':20};
 export const LOCATIONS = {
@@ -30,11 +33,16 @@ export const LOCATIONS = {
  ...CONTACT_LOCATIONS,
  ...NEWS_LOCATIONS,
  ...NY_TRAVEL_LOCATIONS,
- ...LINER_ARRIVALS
+ ...LINER_ARRIVALS,
+ ...MED_LOCATIONS,
+ ...EGYPT_LOCATIONS,
+ ...CASE_LOCATIONS
 };
 export const CLUES = {
  ...HARDING_CLUES,
  ...NYC_CLUES,
+ ...EGYPT_CLUES,
+ ...CASE_CLUES,
  ...EARLY_CLUES,
  ...LATE_CLUES,
  ...CONTACT_CLUES,
@@ -51,6 +59,8 @@ export const CLUES = {
 export const CHECKS = {
  ...HARDING_CHECKS,
  ...NYC_CHECKS,
+ ...EGYPT_CHECKS,
+ ...CASE_CHECKS,
  ...COMBAT_CHECKS,
  ...EARLY_CHECKS,
  ...LATE_CHECKS,
@@ -68,6 +78,9 @@ export const SCENES = {
  ...NYC_SCENES,
  ...NY_TRAVEL_SCENES,
  ...LINER_SCENES,
+ ...MED_SCENES,
+ ...EGYPT_SCENES,
+ ...CASE_SCENES,
  ...COMBAT_SCENES,
  ...EARLY_SCENES,
  ...LATE_SCENES,

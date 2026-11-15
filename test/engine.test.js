@@ -321,3 +321,80 @@ test('skip to landfall preserves the dossier and leaves the port choice open',()
  assert(actions(s).some(a=>a.id==='ship-disembark-alexandria'));
  assert(validateSave(s));
 });
+
+function landfall(destination) {
+ const s=act(boardLiner(),'ship-skip-to-port');
+ return act(s,'ship-disembark-'+destination);
+}
+
+test('legacy harbor checkpoints reopen without changing the arrival time',()=>{
+ for(const destination of ['athens','alexandria']) {
+  const s=landfall(destination);
+  const old={...s,version:5,phase:'complete'};
+  const actual=importSave(JSON.stringify({format:'aatd-save',version:5,game:old}));
+  assert.deepEqual(actual,s);
+  assert.equal(actual.phase,'playing');
+  assert(actions(actual).length>0);
+ }
+});
+
+test('Alexandria connects to Cairo and back by scheduled rail',()=>{
+ const harbor=landfall('alexandria');
+ const cairo=act(harbor,'rail-cairoRail-13');
+ assert.equal(cairo.entry,205);
+ assert.equal(cairo.time,Date.UTC(1931,8,15,14));
+ assert(!travelOptions(cairo).some(place=>place.id==='alexandriaHarbor'));
+ assert.equal(act(cairo,'rail-alexandriaHarbor-17').time,Date.UTC(1931,8,15,18));
+});
+
+test('the Mediterranean steamer uses weekday departures and takes 24 hours',()=>{
+ let s=landfall('athens');
+ assert(actions(s).find(action=>action.id==='med-steamer').disabled);
+ s=act(wait(s,24),'med-steamer');
+ assert.equal(s.entry,195);
+ assert.equal(s.time,Date.UTC(1931,8,16,15));
+ s=act(s,'med-steamer');
+ assert.equal(s.entry,173);
+ assert.equal(s.time,Date.UTC(1931,8,17,15));
+ assert(validateSave(s));
+});
+
+test('Alexandria’s dockside encounter checks spoken Arabic and persists the escape',()=>{
+ const harbor=landfall('alexandria');
+ let s=act(harbor,'alexandria-docks');
+ assert(!actions(s).some(a=>a.id==='alexandria-speak-arabic'));
+ s={...s,allocation:{...s.allocation,'Language (Greek)':0,'Language (Arabic)':20}};
+ s=act(s,'alexandria-speak-arabic');
+ s=act(s,'alexandria-leave-cafes');
+ s=resolveRoll(act(s,'alexandria-listen',()=>100));
+ assert.equal(s.entry,222);
+ assert(s.clues.includes('alexandria-aten'));
+ assert.throws(()=>travel(s,'alexandriaStore'));
+ s=resolveRoll(act(s,'alexandria-dodge',()=>1));
+ assert.equal(s.entry,241);
+ assert.deepEqual(importSave(exportSave(s)),s);
+});
+
+test('Athens case report, interpreter and letter persist across save and travel',()=>{
+ let s=landfall('athens');
+ assert(actions(s).find(a=>a.id==='piraeus-cab').disabled);
+ s=act(wait(s,1),'piraeus-cab');
+ assert.equal(s.entry,130);
+ assert(s.clues.includes('athensDeath'));
+ s=resolveRoll(act(s,'athens-ilionas-persuade',()=>1));
+ assert(s.flags.athensIlionasName);
+ s=act(s,'athens-read-report');
+ s=act(s,'athens-ask-device');
+ s=resolveRoll(act(s,'athens-device-int',()=>1));
+ assert.equal(s.entry,21);
+ s=act(s,'athens-device-september');
+ assert.equal(s.entry,128);
+ s=travel(s,'athensJustice');
+ s=act(s,'athens-justice-name');
+ s=act(s,'athens-justice-find-interpreter');
+ assert.equal(s.entry,77);
+ s=act(s,'athens-gliere-letter');
+ assert.equal(s.entry,539);
+ assert(s.clues.includes('gliereLetter'));
+ assert.deepEqual(importSave(exportSave(s)),s);
+});
