@@ -77,9 +77,15 @@ Updated: 14 November 2026.
 - Added the public tomb chambers, the four exterior surveys, the concealed entrance, and the hidden pyramid's passage network, hazards, and ritual clues.
 - The pyramid map fills with the original tiles as the player reaches sections. Existing dossiers retain their progress. Verified the map with a browser import and checked all puzzle links, 77 automated tests, and the production build.
 
+## v0.11.0
+
+- 405 of 593 reachable entries, up 76 from v0.10.0 (329).
+- Opened scheduled routes to Bremen, the harbor and inn, the Amulet of Nodens encounter, and The Dark Sea. The ship offers cabin and deck investigations, a way to wait out the passage, and a playable victory ending aboard.
+- Normal arrivals at Antarctica base camp save at entry 520. Tested the shipboard victory and landfall, plus boarding and saved voyage progress in the browser.
+
 ## Next step
 
-Follow the expedition lead toward Bremen. Expand the remaining Egypt routes and revisit deferred item and companion interactions. Vercel deployment and music remain later steps.
+Open the expedition parties from Antarctica base camp and the routes into the interior. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

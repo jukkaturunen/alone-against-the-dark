@@ -125,3 +125,10 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - Exterior searches take one hour. The first surveyed face of the day, remaining daylight, and a diagram found outside Egypt affect search odds. The percentile roll must fall below the resulting chance. It does not accept Luck spending.
 - The public tomb has its own plan. The hidden map uses the supplied handout tiles and places them automatically as the corresponding sections are discovered. Map progress is derived from saved visits. Ordinary passage movement uses half-hour steps where the source gives no timing.
 - The chamber switches from the ritual to its aftermath on November 21. Some item-dependent routes require equipment from a future branch. The prepared dynamite-only entry 421 is excluded from the reachable-entry count.
+
+
+## Bremen and The Dark Sea (v0.11.0)
+
+- Athens rail and both Mediterranean sea routes use their printed schedules. Cairo flights use the printed timetable. The Athens charter flights use the same three- and eight-hour durations as the corresponding scheduled flights, since the charter entry only gives a before-noon cutoff.
+- Bremen’s berth changes on December 20. From the inn or mission, players can choose to wait with lodging and meals until the morning of December 19. The ship’s gangplank is open from 8 AM to 8 PM before departure.
+- The Dark Sea tracks voyage days separately from hourly travel, rolls the passage length once, and saves the investigation and cabin locks. Waiting out the passage preserves the printed encounter checks that apply to the route. Destroying the Top at sea can finish the investigation. Entry 520 is the base camp checkpoint for the next expansion.

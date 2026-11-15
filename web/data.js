@@ -1,3 +1,6 @@
+import { DS_LOCATIONS, DS_SCENES, DS_CLUES, DS_CHECKS } from './dark-sea.js';
+import { BR_LOCATIONS, BR_SCENES, BR_CLUES, BR_CHECKS } from './bremen.js';
+import { BR_TRAVEL_LOCATIONS, BR_TRAVEL_SCENES } from './bremen-travel.js';
 import { PUZZLE_SCENES, PUZZLE_CLUES, PUZZLE_CHECKS } from './amarna-puzzle.js';
 import { UPPER_SCENES, UPPER_CLUES, UPPER_CHECKS } from './amarna-upper.js';
 import { EXTERIOR_SCENES, EXTERIOR_CHECKS } from './amarna-exterior.js';
@@ -51,7 +54,10 @@ export const LOCATIONS = {
  ...CM_LOCATIONS,
  ...ROAD_LOCATIONS,
  ...PAR_LOCATIONS,
- ...CITY_LOCATIONS
+ ...CITY_LOCATIONS,
+ ...BR_TRAVEL_LOCATIONS,
+ ...BR_LOCATIONS,
+ ...DS_LOCATIONS
 };
 export const CLUES = {
  ...HARDING_CLUES,
@@ -63,6 +69,8 @@ export const CLUES = {
  ...CM_CLUES,
  ...UPPER_CLUES,
  ...PUZZLE_CLUES,
+ ...BR_CLUES,
+ ...DS_CLUES,
  ...PAR_CLUES,
  ...CITY_CLUES,
  ...EARLY_CLUES,
@@ -88,6 +96,8 @@ export const CHECKS = {
  ...CM_CHECKS,
  ...UPPER_CHECKS,
  ...PUZZLE_CHECKS,
+ ...BR_CHECKS,
+ ...DS_CHECKS,
  ...EXTERIOR_CHECKS,
  ...PAR_CHECKS,
  ...CITY_CHECKS,
@@ -120,6 +130,9 @@ export const SCENES = {
  ...EXTERIOR_SCENES,
  ...PAR_SCENES,
  ...CITY_SCENES,
+ ...BR_TRAVEL_SCENES,
+ ...BR_SCENES,
+ ...DS_SCENES,
  ...COMBAT_SCENES,
  ...EARLY_SCENES,
  ...LATE_SCENES,

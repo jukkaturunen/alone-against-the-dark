@@ -50,3 +50,5 @@ The production build copies only `web/` into `dist/`. `vercel.json` prepares thi
 The owner supplies three PDFs in `src/`: the adventure, handouts and ready-made investigators, and the Keeper Rulebook. Originals are excluded from Git and the web server. A fresh clone does not include them. The private repository contains the adapted opening's text and rules; it is not a public redistribution package.
 
 Alone Against the Dark © Chaosium Inc. Adventure by Matthew Costello with Mike Mason. This is a personal adaptation, not an official Chaosium product.
+
+Follow the expedition lead to Bremen and board The Dark Sea. Investigate aboard, or continue to the Antarctica base camp checkpoint.

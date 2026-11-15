@@ -590,3 +590,74 @@ test('hidden passages add only discovered map sections and keep in-tomb time acr
  assert.equal((pyramidBoard(mapped).match(/<img /g)||[]).length,2);
  assert.deepEqual(importSave(exportSave(s)),s);
 });
+
+test('Bremen sea, train and air routes use their printed schedules',()=>{
+ const monday=landfall('athens');
+ assert(actions(monday).find(a=>a.id==='connection-bremenHarbor').disabled);
+ const ship=act(wait(monday,24),'connection-bremenHarbor');
+ assert.equal(ship.entry,449);
+ assert.equal(ship.time,Date.UTC(1931,8,20,16));
+ assert(validateSave(ship));
+ const railway=travel(monday,'athensRail');
+ const express=act(wait(railway,11),'connection-bremenHarbor');
+ assert.equal(express.time,Date.UTC(1931,8,18,9));
+ assert.equal(express.location,'bremenHarbor');
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ const airport=travel(cairo,'cairoAirport');
+ const flight=act(wait(airport,9),'connection-bremenAirport');
+ assert.equal(flight.time,Date.UTC(1931,8,16,17));
+ assert.equal(flight.entry,450);
+ assert.deepEqual(importSave(exportSave(flight)),flight);
+});
+
+test('waiting at the Bremen inn preserves time for boarding before departure',()=>{
+ const harbor=act(wait(landfall('athens'),24),'connection-bremenHarbor');
+ const inn=travel(harbor,'bremenInn');
+ const ready=act(inn,'bremen-wait-season');
+ assert.equal(ready.time,Date.UTC(1931,11,19,8));
+ assert.equal(ready.entry,461);
+ assert(validateSave(ready));
+ assert(!actions(ready).some(a=>a.id==='bremen-wait-season'));
+});
+
+function boardDarkSea() {
+ let s=act(wait(landfall('athens'),24),'connection-bremenHarbor');
+ s=act(travel(s,'bremenInn'),'bremen-wait-season');
+ s=travel(s,'bremenHarbor');
+ s=act(s,'bremen-look-ships');
+ s=act(s,'bremen-board-dark-sea');
+ return ['dark-sea-captain','dark-sea-ask-for-berth','dark-sea-take-berth'].reduce((state,id)=>act(state,id),s);
+}
+
+test('an expedition berth can reach Antarctica with a persistent arrival checkpoint',()=>{
+ const ship=boardDarkSea();
+ assert.equal(ship.entry,500);
+ assert(validateSave(ship));
+ const camp=act(act(ship,'dark-sea-make-landfall'),'dark-sea-keep-to-yourself');
+ assert.equal(camp.entry,520);
+ assert.equal(camp.phase,'complete');
+ assert(camp.time-ship.time>=27*86400000);
+ assert(camp.time-ship.time<=32*86400000);
+ assert.deepEqual(importSave(exportSave(camp)),camp);
+});
+
+test('investigating Jeffries’ locker can reach the sea victory ending',()=>{
+ let s=act(boardDarkSea(),'dark-sea-investigate');
+ s=resolveRoll(act(s,'dark-sea-deck-c-spot-hidden',()=>1));
+ assert.equal(s.entry,509);
+ assert(s.clues.includes('darkSeaLocker'));
+ s=act(s,'dark-sea-return-from-509');
+ s=act(s,'dark-sea-next-day');
+ if(s.entry===500) s=act(s,'dark-sea-search');
+ else if(s.entry===480) s=act(s,'dark-sea-search-cabins');
+ s=act(s,'dark-sea-crew-quarters');
+ s=act(s,'dark-sea-locker-jeffries');
+ assert.equal(s.entry,576);
+ const pending=act(s,'dark-sea-top-luck',()=>1);
+ assert.deepEqual(importSave(exportSave(pending)),pending);
+ s=act(resolveRoll(pending),'dark-sea-throw-top-overboard');
+ assert.equal(s.entry,433);
+ assert.equal(s.phase,'ending');
+ assert(s.hp>0);
+ assert(validateSave(s));
+});
