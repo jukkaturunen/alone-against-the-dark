@@ -291,3 +291,33 @@ test('baccarat winnings are posted to carried cash and persist in a dossier',()=
  assert.equal(s.voyage.day,5);
  assert.deepEqual(importSave(exportSave(s)),s);
 });
+
+test('skipping quiet periods stops at the next encounter choice without resolving it',()=>{
+ const sunday=boardLiner();
+ const afternoon=act(sunday,'ship-skip-quiet');
+ assert.equal(afternoon.voyage.slot,1);
+ assert(actions(afternoon).some(a=>a.id==='ship-activity-tour'));
+ const tour=act(afternoon,'ship-activity-tour');
+ assert.equal(tour.entry,73);
+ assert.throws(()=>act(tour,'ship-skip-quiet'));
+ const night=resolveRoll(act(tour,'ship-tour-spot',()=>100));
+ const next=act(night,'ship-skip-quiet');
+ assert.equal(next.voyage.day,2);
+ assert.equal(next.voyage.slot,0);
+ assert.equal(next.entry,187);
+ assert.deepEqual(next.clues,night.clues);
+ assert.deepEqual(importSave(exportSave(next)),next);
+});
+
+test('skip to landfall preserves the dossier and leaves the port choice open',()=>{
+ const boarded=boardLiner();
+ const s=act(boarded,'ship-skip-to-port');
+ assert.equal(s.voyage.day,9);
+ assert.equal(s.location,'liner');
+ assert.deepEqual(s.clues,['telegram']);
+ assert.equal(s.hp,boarded.hp);
+ assert.equal(s.cash,boarded.cash);
+ assert(!s.visited.includes(155));
+ assert(actions(s).some(a=>a.id==='ship-disembark-alexandria'));
+ assert(validateSave(s));
+});

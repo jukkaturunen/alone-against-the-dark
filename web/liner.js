@@ -26,7 +26,7 @@ export const LINER_SCENES = {
  193:{title:'Saturday on the liner',eyebrow:'Atlantic crossing',source:'Entry 193 · p. 39',adapted:true,paragraphs:['You consider how to spend the day at sea.']},
  171:{title:'The last days at sea',eyebrow:'Atlantic crossing',source:'Entry 171 · p. 34',adapted:true,paragraphs:['You can rest in your room, join the painters, or visit the cocktail lounge.']},
  187:{title:'Aboard the Cunard liner',eyebrow:'Atlantic crossing',source:'Entry 187 · p. 37',adapted:true,
-  paragraphs:['Choose a morning, afternoon, and evening activity each day. Meals and lodging are included during the voyage.']},
+  paragraphs:['Choose an activity or skip ahead to the next period with an encounter. Meals and lodging are included during the voyage.']},
  173:{title:'Landfall at Piraeus',eyebrow:'Athens Harbor',source:'Entry 173 · pp. 34–35',adapted:true,
   paragraphs:['The liner docks beneath a brilliant midday sun. Beyond the harbor, Athens gleams on the hills. Your next lead is the Bureau of Investigation.']},
  195:{title:'The docks of Alexandria',eyebrow:'Alexandria Harbor and Rail Station',source:'Entry 195 · p. 39',adapted:true,
@@ -64,15 +64,42 @@ export function voyagePeriod(s) {
  return s.voyage.day>8?'Arrival':periods[s.voyage.slot];
 }
 
+function periodActivities(s) {
+ const slot=slots[s.voyage.slot];
+ return activities.filter(([, ,times])=>times.split(' ').includes(slot)).map(([id,label])=>({
+  id:'ship-activity-'+id,label,detail:periods[s.voyage.slot]
+ }));
+}
+
+function hasEncounter(s) {
+ return periodActivities(s).some(action=>activityResult(s,action.id));
+}
+
+export function skipQuietPeriods(s) {
+ let skipped=0;
+ do {
+  finishActivity(s);
+  skipped++;
+ } while(s.voyage.day<=8&&!hasEncounter(s));
+ return skipped;
+}
+
 export function voyageActions(s) {
  if(s.voyage.day>8) return [
   {id:'ship-disembark-athens',label:'Disembark at Piraeus',detail:'Monday · noon'},
   {id:'ship-disembark-alexandria',label:'Stay aboard for Alexandria',detail:'Tuesday · 1 PM'}
  ];
- const slot=slots[s.voyage.slot];
- return activities.filter(([, ,times])=>times.split(' ').includes(slot)).map(([id,label])=>({
-  id:'ship-activity-'+id,label,detail:voyagePeriod(s)
- }));
+ const options=periodActivities(s);
+ const fastForward={
+  id:'ship-skip-quiet',
+  label:hasEncounter(s)?'Pass on this period and skip ahead':'Skip quiet periods',
+  detail:'Stop when an activity can lead to an encounter, or at landfall'
+ };
+ return [fastForward,{
+  id:'ship-skip-to-port',
+  label:'Skip to landfall',
+  detail:'Pass on all remaining shipboard encounters and choose where to disembark'
+ },...options];
 }
 
 export function activityResult(s,id) {

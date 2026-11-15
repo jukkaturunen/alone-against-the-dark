@@ -4,7 +4,7 @@ import { ENTRY_CLUES as HARDING_CLUES, HARDING_ENTRIES } from './harding.js';
 import { NYC_ENTRIES, NYC_ENTRY_CLUES, NYC_CHOICES, NYC_CHECKS } from './new-york.js';
 import { EARLY_SCENES, EARLY_ENTRY_CLUES, EARLY_CHOICES, EARLY_REDIRECTS } from './liner-early.js';
 import { LATE_SCENES, LATE_ENTRY_CLUES, LATE_CHOICES } from './liner-late.js';
-import { SHIP_DAYS, LINER_ARRIVALS, startVoyage, finishActivity, skipVoyage, voyageActions, activityResult, arrive } from './liner.js';
+import { SHIP_DAYS, LINER_ARRIVALS, startVoyage, finishActivity, skipVoyage, skipQuietPeriods, voyageActions, activityResult, arrive } from './liner.js';
 import { NY_TRAVEL_ENTRIES } from './ny-travel.js';
 import { serviceActions, performService } from './arkham-services.js';
 import { CONTACT_LOCATIONS, CONTACT_ENTRIES, CONTACT_ENTRY_CLUES, CONTACT_CHOICES, contactOpen, contactChoiceStatus } from './ny-contacts.js';
@@ -342,6 +342,16 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
   go(s,187);
   log(s,'Boarded the Cunard liner at Pier 56.');
   startVoyage(s);
+  return s;
+ }
+ if(id==='ship-skip-quiet') {
+  const skipped=skipQuietPeriods(s);
+  log(s,`Passed ${skipped} ${skipped===1?'period':'periods'} at sea without taking part in an activity.`);
+  return s;
+ }
+ if(id==='ship-skip-to-port') {
+  skipVoyage(s);
+  log(s,'Passed the rest of the crossing without taking part in shipboard activities.');
   return s;
  }
  if(id.startsWith('ship-activity-')) {

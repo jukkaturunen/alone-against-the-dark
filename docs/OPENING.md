@@ -94,3 +94,5 @@ Save schema 3 preserves historical meals, notes, clues, and pending dice. A migr
 - The ship encounters use staged percentile checks and a compact combat sequence. Shipboard treatment uses voyage days. After the guarded escape at 139, players can select their destination without further activity rolls. Investigator succession after an ending remains pending.
 - Gambling at 579 and 385 changes carried cash. Losses are limited to cash on hand. Routine purchases and fares follow the book’s optional expense bookkeeping rule.
 - Version 5 migrates prior entry 187 checkpoints from the saved Saturday departure to Sunday morning. Checkpoints at Piraeus and Alexandria preserve landfall at noon Monday and 1 PM Tuesday, respectively.
+
+The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for the next period where an available activity can lead to an encounter. Skip to landfall passes over all remaining activities and leaves the port choice open. Both are available between encounters.
