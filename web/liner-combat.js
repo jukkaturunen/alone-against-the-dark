@@ -1,4 +1,5 @@
-const maxHealth = 9;
+import { startingHealth } from './investigators.js';
+
 const library = 155;
 const cowl = 1201;
 const aftermath = 1202;
@@ -84,8 +85,8 @@ function currentStage(s) {
 
 export function combatActionsAvailable(s,item) {
  if (item.combatWeapon&&!hasWeapon(s,item.combatWeapon)) return false;
- if (item.combatStage==='injured') return s.hp<maxHealth;
- if (item.combatStage==='injured-and-treated') return s.hp<maxHealth&&currentStage(s)==='treated'&&s.voyage.day<8;
+ if (item.combatStage==='injured') return s.hp<startingHealth(s);
+ if (item.combatStage==='injured-and-treated') return s.hp<startingHealth(s)&&currentStage(s)==='treated'&&s.voyage.day<8;
  if (item.combatWeapon&&item.combatStage==='defend'&&item.combatWeapon==='knife'&&!s.shipCombat?.ready) return false;
  return !item.combatStage||item.combatStage===currentStage(s);
 }
@@ -153,7 +154,7 @@ function treatment(s,tools,dice) {
  const {rollDie,log,finishActivity}=tools;
  const hp= s.hp;
  const restored=dice===0 ? 1 : Array.from({length:dice},()=>rollDie(3)).reduce((total,roll)=>total+roll,0);
- s.hp=Math.min(maxHealth,hp+restored);
+ s.hp=Math.min(startingHealth(s),hp+restored);
  log(s,`The ship’s doctor treats your wounds. You regain ${s.hp-hp} health.`);
  beginStage(s,'treated');
  if(s.voyage.day<8) finishActivity(s,true);

@@ -89,9 +89,15 @@ Updated: 15 November 2026.
 - Opened all three Antarctica expedition parties, the Lost City above and below ground, and the ritual endings. Added three illustrated map handouts.
 - Save schema 7 reopens old base camp dossiers at the recorded date and adds the expedition map. Verified Trip C through a browser reload at the Lost City and checked the map handout. The automated tests cover save migration, the three trips, the combined descent check, and two playable victories.
 
+## v0.13.0
+
+- 458 of 593 reachable entries, up 11 from v0.12.0 (447).
+- At eligible endings the dossier passes from Grunewald to Holt, then Lau, then Wilson. Each uses the supplied investigator sheet and a separate 150-point allocation. Wilson can start in one of four ports. The Dark Sea's recruitment branches use each investigator's own approach.
+- Schema 8 preserves existing dossiers as Grunewald. Verified a previous-version ending and saved journal through Holt's setup and a browser reload.
+
 ## Next step
 
-Add investigator succession and the other investigators' starting routes. Cross-region transport from the Lost City and the remaining side branches are also pending. Vercel deployment and music remain later steps.
+Open more of the remaining alternate routes, including the Old One's transport and defense and the encounters tied to particular investigators. Equipment recovery from earlier investigators and optional handoffs during temporary insanity remain pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

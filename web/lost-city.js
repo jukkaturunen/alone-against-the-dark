@@ -1,3 +1,5 @@
+import { INVESTIGATORS, ORDER } from './investigators.js';
+
 const city='City of the Old Ones';
 const roseAmulet='Rose-colored amulet';
 const nodensAmulets=['Amulet of Nodens','Amulet of Nodens (charged)'];
@@ -260,9 +262,13 @@ export function lostCityDexPenalty(s,skill) {
 function loseDex(s,{rollDie,log}) {
  const amount=rollDie(10)+rollDie(10)+rollDie(10);
  const previous=s.lostCityDexLoss||0;
- s.lostCityDexLoss=Math.min(60,previous+amount);
+ s.lostCityDexLoss=Math.min(originalDex(s),previous+amount);
  log(s,`Ghatanothoa’s gaze cost you ${s.lostCityDexLoss-previous} DEX.`);
  return s.lostCityDexLoss;
+}
+
+function originalDex(s) {
+ return INVESTIGATORS[s.investigator??ORDER[0]].characteristics.DEX;
 }
 
 export function lostCityEnter(s,previousEntry,ctx) {
@@ -317,7 +323,7 @@ export function lostCityCheckEffect(s,effect,ctx) {
    return true;
   }
   case 'lost-city-paralysis':
-   go(s,loseDex(s,ctx)===60?'lost-city-petrified':'lost-city-retry-cover');
+   go(s,loseDex(s,ctx)===originalDex(s)?'lost-city-petrified':'lost-city-retry-cover');
    return true;
   default: return lostCityChoiceEffect(s,effect,ctx);
  }
@@ -326,7 +332,8 @@ export function lostCityCheckEffect(s,effect,ctx) {
 export function validateLostCity(s) {
  const loss=s.lostCityDexLoss;
  if(loss===undefined) return s.entry!=='lost-city-petrified'&&s.entry!==569;
- if(s.location!=='antarctica'||!Number.isInteger(loss)||loss<3||loss>60) return false;
- if(s.entry==='lost-city-petrified') return loss===60;
- return loss<60||s.entry===569;
+ const maxLoss=originalDex(s);
+ if(s.location!=='antarctica'||!Number.isInteger(loss)||loss<3||loss>maxLoss) return false;
+ if(s.entry==='lost-city-petrified') return loss===maxLoss;
+ return loss<maxLoss||s.entry===569;
 }

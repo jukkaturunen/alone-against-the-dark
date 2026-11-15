@@ -1,4 +1,5 @@
 import { DAY, hourOf } from './calendar.js';
+import { COMMON_SKILLS, trainedSkill } from './investigators.js';
 
 const ship = 'The Dark Sea';
 const sailing = Date.UTC(1931,11,20);
@@ -20,23 +21,31 @@ function scene(title,entry,page,...paragraphs) {
 
 export const DS_SCENES = {
  453:scene('A place to stow away',453,70,'You could hide aboard with provisions and water. Each hiding place has its own risks.'),
+ 454:scene('A naval officer at the gangplank',454,71,'Crawford takes a moment to look you over. Decide whether you approached him in uniform or in civilian clothes.'),
  456:scene('Hidden aboard',456,71,'The expedition sails for Antarctica. You have to keep your hiding place secret until landfall.'),
  459:scene('Locked below deck',459,72,'Captain Crawford has you confined to a windowless room. The crew brings food until the ship reaches Antarctica.'),
  460:scene('Cabins and lockers',460,72,'Eight cabins line B deck. An unlocked door is a matter of Luck. If you find a door locked, come back on a later ship day with Locksmith or Mechanical Repair. The sailors’ lockers are on C deck.'),
  462:scene('A quiet passage',462,72,'You can keep to yourself until the expedition lands.'),
  463:scene('Passing as a sailor',463,72,'The expedition still needs hands. You can shorten your hair and try to pass as a sailor.'),
+ 464:scene('Show what you can do',464,72,'Crawford will give you a berth if your training adds at least 100 points above the starting chances in mechanical repair, navigation, heavy machinery, aircraft piloting, and survival.'),
  465:scene('Three new recruits',465,72,'You ask about recent arrivals. The sailors remember Jackson, Jeffries, and Klug.'),
  466:scene('Something on the deck',466,72,'A figure changes shape before you. Its surface boils with eyes and mouths as it moves toward you.'),
+ 471:scene('Crawford stands his ground',471,73,'Crawford says he commands this expedition. The tone Holt uses in New York boardrooms will get him no further here.'),
  475:scene('The sailors’ bunks',475,73,'Names are painted on the footlockers. If you have a name to go on, you could try that sailor’s locker.'),
  480:scene('Investigate the decks',480,74,'Choose one investigation per ship day. Sailors can investigate B and C decks. The expedition’s guests have access to all four.'),
+ 483:scene('The question of sponsorship',483,74,'Crawford refers you to Starkweather and Moore. They are the ones to ask whether a contribution can buy you a place.'),
  486:scene('The gangplank is down',486,74,'Supplies are coming aboard the freighter. You could speak to a sailor, ask for Captain Crawford, or seek out the expedition leader, Professor Blake.'),
  487:scene('The captain is hiring',487,74,'The expedition needs people with at least 25% in Electrical Repair, Mechanical Repair, Navigate, Operate Heavy Machinery, Pilot (Aircraft), or Survival.'),
- 488:scene('A place on the expedition',488,74,'Crawford considers who you are and what you bring to the expedition. He offers you a berth as Professor Grunewald.'),
+ 488:{...scene('A place on the expedition',488,74,'Crawford considers who you are and what you bring to the expedition.'),source:'Entry 488 · pp. 74, 76'},
+ 489:scene('An offer to publish',489,76,'You offer to publish the expedition’s work and finance its future research. The leaders accept and make room for you on the December 20 sailing.'),
  490:scene('Another way aboard',490,76,'You can make another approach to the captain, or look for a different way aboard.'),
  492:scene('The expedition roster',492,76,'Captain Crawford commands the ship. Professor Eustace Blake leads the expedition, and Dr. Jerome Thompson is its physician. Olav Fram oversees the equipment, including three Dornier aircraft. MacPherson, Smith, and Bering are the pilots. Dr. Rambeau is a geologist. Paddy Jones serves as first mate and radio officer. Eighteen sailors round out the crew.'),
  494:scene('Talk along the gangplank',494,76,'The crew calls Crawford “Old Haddock.” They are worried about the weather and say he is hiring only people with the skills for a polar expedition. You could try to bluff your way aboard.'),
+ 495:scene('The captain cuts you short',495,76,'Crawford says he has no time to argue. You will have to find another approach.'),
  496:scene('A seaman’s disguise',496,76,'With some work you could pass as a sailor. Or you could ask Crawford directly.'),
- 497:scene('Professor Eustace Blake',497,76,'Blake is glad to see you. His expedition hopes to retrace Lake’s journey. He dismisses the stories of a lost city as something that happens to people after too long in Antarctica.'),
+ 497:scene('Professor Eustace Blake',497,76,'Blake explains that his expedition hopes to retrace Lake’s journey. He dismisses the stories of a lost city as something that happens to people after too long in Antarctica.'),
+ 498:scene('No reporters aboard',498,76,'Crawford refuses to take a reporter, and his reasons have little to do with your qualifications. You could try to find a way around his refusal.'),
+ 499:scene('Where are your orders?',499,77,'Seeing the uniform, Crawford asks for orders assigning you to his expedition. You are on leave and have no orders to show him.'),
  500:scene('A berth on The Dark Sea',500,77,'You secured passage before the December 20 sailing. The freighter takes 26 plus 1D6 days to reach Antarctica. You can make one investigation each ship day or wait out the voyage.'),
  501:scene('A place with the crew',501,77,'You secured a place as a sailor before the December 20 sailing. The passage takes 26 plus 1D6 days. You can search the ship or investigate B and C decks between shifts.'),
  503:scene('The stores below deck',503,77,'You find food, skis, and other expedition supplies.'),
@@ -83,7 +92,7 @@ export const DS_SCENES = {
 DS_SCENES[480].eyebrow=deck('Investigation table');
 DS_SCENES[460].eyebrow=deck('Cabins');
 
-const dockEntries=[453,463,486,487,488,490,494,496,497];
+const dockEntries=[453,454,463,464,471,483,486,487,488,489,490,494,495,496,497,498,499];
 const endings=['dark-sea-saved-at-sea','dark-sea-jeffries-death','dark-sea-shoggoth-death',544,433];
 export const DS_ENDINGS = new Set(endings);
 export const DS_ENTRIES={
@@ -129,6 +138,18 @@ const resetOnShipDay=new Set([506,514,516,524,526,540,'dark-sea-gossip','dark-se
 const returnToShip=choice('return','Return to your berth',null,{effect:'dark-sea-return'});
 const nextDay=choice('next-day','Wait until the next ship day',null,{effect:'dark-sea-next',when:s=>s.darkSea.day<s.darkSea.days});
 const land=choice('make-landfall','Wait out the voyage',null,{effect:'dark-sea-land'});
+const beforeSailing=s=>s.time<sailing;
+const isInvestigator=key=>s=>(s.investigator??'grunewald')===key;
+const crewSkills=['Mechanical Repair','Navigate','Operate Heavy Machinery','Pilot (Aircraft)','Survival (Desert)','Survival (Sea)'];
+const crewQualified=s=>['Electrical Repair',...crewSkills].some(skill=>trainedSkill(s,skill)>=25);
+const wilsonQualified=s=>crewSkills.reduce((total,skill)=>total+trainedSkill(s,skill)-COMMON_SKILLS[skill],0)>=100;
+const holtBerthOptions={Persuade:483, Charm:489, 'Fast Talk':495, Intimidate:471};
+const holtBerthId=skill=>`dark-sea-holt-berth-${skill.toLowerCase().replaceAll(' ','-')}`;
+const isHolt=isInvestigator('holt');
+const holtCanNegotiate=s=>beforeSailing(s)&&isHolt(s)&&!Object.keys(holtBerthOptions).some(skill=>s.attempts[holtBerthId(skill)]);
+const holtBerthChecks=Object.fromEntries(Object.entries(holtBerthOptions).map(([skill,target])=>[holtBerthId(skill),
+ check(488,skill,`Make your case with ${skill}`,target,488,{daily:true,when:holtCanNegotiate}),
+]));
 const shipActivity = s=>!s.darkSea.landed&&!s.darkSea.used;
 const lodge = s=>s.darkSea.boarded===500;
 const lockersKnown = name => s=>s.clues.includes('darkSeaRecruits')||name==='Jeffries'&&(s.clues.includes('darkSeaLocker')||s.clues.includes('darkSeaJeffries'));
@@ -144,6 +165,7 @@ export const DS_CHOICES = {
   ...Object.entries(hidingPlaces).map(([id,name])=>choice(`hide-${id}`,`Stow away in the ${name}`,null,{effect:`dark-sea-hide-${id}`})),
   choice('abandon-stowaway','Return to the gangplank',486),
  ],
+ 454:[choice('wilson-uniform','Approach in uniform',499),choice('wilson-civilian','Approach in civilian clothes',464)],
  459:[choice('finish-confinement','Wait for Antarctica',null,{effect:'dark-sea-arrive-caught'})],
  460:[
   choice('crew-quarters','Search the sailors’ footlockers',475,{when:shipActivity}),
@@ -152,7 +174,15 @@ export const DS_CHOICES = {
  ],
  462:[choice('keep-to-yourself','Continue to landfall',null,{effect:'dark-sea-land'}),returnToShip],
  463:[choice('ask-crew','Talk to the sailors',494),choice('ask-captain','Talk to Captain Crawford',487)],
+ 464:[
+  choice('wilson-accept-berth','Accept the berth on your qualifications',500,{when:s=>beforeSailing(s)&&wilsonQualified(s)}),
+  choice('wilson-reconsider','Look for another way aboard',490,{when:s=>!wilsonQualified(s)}),
+ ],
  465:[choice('return-roster','Return to the roster',492)],
+ 471:[
+  choice('holt-reconsider-intimidate','Return to the captain',488),
+  choice('holt-wait-after-intimidate','Wait one day and try another approach',490,{journey:24,when:s=>s.time+DAY<sailing}),
+ ],
  475:[
   ...['Jackson','Jeffries','Klug'].map(name=>choice(`locker-${name.toLowerCase()}`,`Search ${name}’s locker`,null,{
    when:s=>shipActivity(s)&&lockersKnown(name)(s),
@@ -161,6 +191,7 @@ export const DS_CHOICES = {
   choice('return-cabins','Return to B deck',460),
  ],
  480:[choice('search-cabins','Search the cabins on B deck',460),returnToShip,nextDay,land],
+ 483:[choice('holt-reconsider-persuade','Return to the captain',488),choice('holt-leave-sponsors','Look for another way aboard',490)],
  486:[
   choice('sailors','Talk to the sailors',494),
   choice('captain','Ask to see the captain',487),
@@ -168,17 +199,25 @@ export const DS_CHOICES = {
  ],
  487:[
   choice('take-crew-berth','Sign on with the crew',501,{
-   when:s=>[['Electrical Repair',10],['Mechanical Repair',10],['Navigate',10],['Operate Heavy Machinery',1],
-    ['Pilot (Aircraft)',1],['Survival (Desert)',10]].some(([skill,base])=>base+(s.allocation[skill]||0)>=25),
+   when:s=>beforeSailing(s)&&crewQualified(s),
   }),
   choice('ask-for-berth','Explain who you are to Crawford',488),
  ],
- 488:[choice('take-berth','Accept a berth on the expedition',500)],
+ 488:[
+  choice('take-berth','Accept a berth on the expedition',500,{when:s=>beforeSailing(s)&&isInvestigator('grunewald')(s)}),
+  choice('lau-ask-for-berth','Ask to join as a reporter',498,{when:isInvestigator('lau')}),
+  choice('wilson-ask-for-berth','Present yourself to Crawford',454,{when:isInvestigator('wilson')}),
+  choice('holt-other-approach','Look for another way aboard',490,{when:isHolt}),
+ ],
+ 489:[choice('holt-accept-berth','Accept a berth on the expedition',500,{when:beforeSailing})],
  490:[choice('try-captain','Ask for the captain',487),choice('return-gangplank','Return to the gangplank',486)],
  492:[returnToShip,nextDay,land],
  494:[choice('apply','Apply for a crew position',487),choice('leave-sailors','Return to the gangplank',486)],
+ 495:[choice('holt-reconsider-fast-talk','Look for another way aboard',490)],
  496:[choice('pose-as-sailor','Pose as a sailor and approach the crew',494),choice('see-crawford','See Crawford',487)],
  497:[choice('join-expedition','Try to join the expedition',463),choice('leave-blake','Return to the gangplank',486)],
+ 498:[choice('lau-leave-captain','Return to the gangplank',486)],
+ 499:[choice('wilson-reconsider-uniform','Look for another way aboard',490)],
  500:[
   choice('roster','Ask about expedition members',492,{when:shipActivity}),
   choice('search','Search the cabins',460),choice('investigate','Investigate the decks',480),nextDay,land,
@@ -215,6 +254,8 @@ DS_SCENES['dark-sea-leave-cabin']=scene('Leaving the cabin',460,72,'You listen a
 DS_ENTRIES.darkSea.push('dark-sea-leave-cabin');
 
 export const DS_CHECKS = {
+ ...holtBerthChecks,
+ 'dark-sea-lau-disguise':check(498,'INT','Work out a way to get aboard',463,498,{daily:true,when:beforeSailing}),
  'dark-sea-stowaway':check(486,'INT','Look for a place to hide',453,486,{daily:true}),
  'dark-sea-perform-bluff':check(494,'EDU','Make up a plausible account of your experience','dark-sea-cover',487,{
   when:s=>!s.flags.darkSeaBluffFailed,failureEffect:'dark-sea-failed-bluff',

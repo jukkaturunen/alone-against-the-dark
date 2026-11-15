@@ -1,6 +1,7 @@
 import { DS_ENTRIES, DS_ENTRY_CLUES, DS_CHOICES, DS_FLAGS, DS_ENDINGS, darkSeaEnter, darkSeaChoiceEffect, darkSeaCheckEffect, darkSeaOpen, darkSeaSkillBonus, validateDarkSea } from './dark-sea.js';
 import { AP_SCENES, AP_ENTRY_CLUES, AP_CHOICES, AP_FLAGS, approachEnter, antarcticEducationBonus } from './antarctic-approach.js';
 import { LC_SCENES, LC_ENTRY_CLUES, LC_CHOICES, LC_FLAGS, LC_ENDINGS, LC_VICTORIES, lostCityEnter, lostCityChoiceEffect, lostCityCheckEffect, lostCityDexPenalty, validateLostCity } from './lost-city.js';
+import { COMMON_SKILLS, INVESTIGATORS, ORDER, SUCCESSOR_LOCATIONS, trainedSkill } from './investigators.js';
 import { BR_ENTRIES, BR_ENTRY_CLUES, BR_CHOICES, BR_FLAGS, BR_ENDINGS, BR_LOCKED_ENTRIES, bremenEnter, bremenCheckEffect, validateBremen } from './bremen.js';
 import { BR_TRAVEL_ENTRIES, BR_TRAVEL_CHOICES, bremenConnections } from './bremen-travel.js';
 import { PUZZLE_SCENES, PUZZLE_ENTRY_CLUES, PUZZLE_CHOICES, PUZZLE_FLAGS, PUZZLE_ENDINGS, puzzleChoiceEffect, puzzleCheckEffect, puzzleEnter, puzzleSkillPenalty, validatePuzzle } from './amarna-puzzle.js';
@@ -16,7 +17,7 @@ import { CASE_LOCATIONS, CASE_ENTRIES, CASE_ENTRY_CLUES, CASE_CHOICES, CASE_FLAG
 import { EGYPT_ENTRIES, EGYPT_ENTRY_CLUES, EGYPT_CHOICES, egyptChoiceAvailable, egyptFoodAvailable, egyptCheckAvailable, egyptCombatEffect } from './alexandria-route.js';
 import { MED_ENTRIES, steamerOption } from './mediterranean.js';
 import { COMBAT_SCENES, COMBAT_CHOICES, combatActionsAvailable, validateShipCombat, shipCombatEffect } from './liner-combat.js';
-import { BASE_SKILLS, CLUES, LOCATIONS, CHECKS } from './data.js';
+import { CLUES, LOCATIONS, CHECKS } from './data.js';
 import { ENTRY_CLUES as HARDING_CLUES, HARDING_ENTRIES } from './harding.js';
 import { NYC_ENTRIES, NYC_ENTRY_CLUES, NYC_CHOICES, NYC_CHECKS } from './new-york.js';
 import { EARLY_SCENES, EARLY_ENTRY_CLUES, EARLY_CHOICES, EARLY_REDIRECTS } from './liner-early.js';
@@ -31,17 +32,20 @@ import { LATER_CHOICES } from './arkham-later.js';
 import { readLegacySave } from './legacy-save.js';
 import { HOUR, HALF_HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
 export { MORNING, mealCount, mealTarget, canEat, sleepHours };
-export const VERSION = 7;
+export const VERSION = 8;
 export const START = Date.UTC(1931, 8, 1, 20);
 
-const CHARACTERISTICS = { STR:70, CON:50, SIZ:45, DEX:60, INT:70, APP:55, POW:55, EDU:93 };
+const successorStarts=Object.fromEntries(Object.entries(SUCCESSOR_LOCATIONS).map(([id,location])=>[id,[location.entry]]));
+const rochesterPorts={pier:'New York',athensHarbor:'Piraeus',alexandriaHarbor:'Alexandria',bremenHarbor:'Bremen'};
+const startingApartment=s=>s.location==='holtApartment'||s.location==='lauApartment';
 const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES,...NY_TRAVEL_ENTRIES,...CONTACT_ENTRIES,...NEWS_ENTRIES,
  liner:[187,...SHIP_DAYS,...Object.keys({...EARLY_SCENES,...LATE_SCENES,...COMBAT_SCENES}).map(id=>/^\d+$/.test(id)?Number(id):id)],
  athensHarbor:[173],alexandriaHarbor:[195],...MED_ENTRIES,...EGYPT_ENTRIES,...CASE_ENTRIES,...CAFE_ENTRIES,...AM_ENTRIES,...CM_ENTRIES,...PAR_ENTRIES,...ROAD_ENTRIES,...CITY_ENTRIES,...BR_TRAVEL_ENTRIES,...BR_ENTRIES,...DS_ENTRIES,
  darkSea:[...DS_ENTRIES.darkSea,531],
  antarctica:[574,585,...Object.keys({...AP_SCENES,...LC_SCENES}).filter(id=>id!=='531').map(id=>Number(id)||id)],
  amarna:[...new Set([...ROAD_ENTRIES.amarna,...EXTERIOR_ENTRIES,...Object.keys({...UPPER_SCENES,...PUZZLE_SCENES}).map(id=>Number(id)||id)])],
- fuziraMarket:[...CITY_ENTRIES.fuziraMarket,...MARKET_ROAD_ENTRIES]
+ fuziraMarket:[...CITY_ENTRIES.fuziraMarket,...MARKET_ROAD_ENTRIES],
+ ...successorStarts
 };
 export function region(s) {
  return s.darkSea?.landed?'antarctica':LOCATIONS[s.location].region || 'arkham';
@@ -51,19 +55,54 @@ export function hour(s) { return new Date(s.time).getUTCHours(); }
 export function clock(time) { return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'UTC'}).format(time); }
 export function date(time) { return new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(time); }
 export function allocationTotal(a) { return Object.values(a).reduce((sum,n)=>sum+n,0); }
-export function validAllocation(a) {
- return a && typeof a==='object' && !Array.isArray(a) && Object.entries(a).every(([k,n])=>Object.hasOwn(BASE_SKILLS,k)&&Number.isInteger(n)&&n>=0&&n+BASE_SKILLS[k]<=99) && allocationTotal(a)===150;
+export function investigator(s) { return INVESTIGATORS[s?.investigator??ORDER[0]]; }
+export function skillBases(key=ORDER[0]) {
+ return {...COMMON_SKILLS,...INVESTIGATORS[key].skills};
+}
+export function validAllocation(a,key=ORDER[0]) {
+ if(!Object.hasOwn(INVESTIGATORS,key)||!plain(a)) return false;
+ const bases=skillBases(key);
+ return Object.entries(a).every(([k,n])=>Object.hasOwn(bases,k)&&Number.isInteger(n)&&n>=0&&n+bases[k]<=99)&&allocationTotal(a)===150;
+}
+function beginInvestigator(id,name,profile,allocation,time) {
+ if(!validAllocation(allocation,profile.key)) throw new Error('Assign exactly 150 points. Skills may not exceed 99%.');
+ const first=profile.key===ORDER[0];
+ return {version:VERSION,id,name,investigator:profile.key,time,entry:profile.entry,location:profile.location,phase:'playing',allocation:{...allocation},hp:profile.hp,sanity:profile.sanity,luck:profile.luck,mythos:0,bank:first?profile.funds:0,cash:first?0:profile.funds,inventory:[...profile.inventory],clues:[],flags:{},attempts:{},meals:[],mealDebt:0,fastingToday:false,sleep:0,sleepDebt:0,sleptNight:null,pending:null,lastRoll:null,notes:'',log:[],visited:[profile.entry]};
 }
 export function newGame(id,name,allocation) {
- if(!validAllocation(allocation)) throw new Error('Assign exactly 150 points. Skills may not exceed 99%.');
- return {version:VERSION,id,name:name.trim().slice(0,60)||'An Arkham investigation',time:START,entry:13,location:'home',phase:'playing',allocation:{...allocation},hp:9,sanity:55,luck:50,mythos:0,bank:2200,cash:0,inventory:['Passport','Packed clothes and sundries'],clues:[],flags:{},attempts:{},meals:[],mealDebt:0,fastingToday:false,sleep:0,sleepDebt:0,sleptNight:null,pending:null,lastRoll:null,notes:'',log:[{time:START,text:'The investigation begins at Grunewald’s home.'}],visited:[13]};
+ const s=beginInvestigator(id,name.trim().slice(0,60)||'An Arkham investigation',investigator(),allocation,START);
+ log(s,'The investigation begins at Grunewald’s home.');
+ return s;
+}
+export function investigationWon(s) {
+ return s.phase==='ending'&&([433,'dark-sea-saved-at-sea'].includes(s.entry)||LC_VICTORIES.has(s.entry));
+}
+export function investigationEnded(s) {
+ return s.phase==='ending'||(!s.pending&&(s.hp===0||s.sanity===0));
+}
+export function nextInvestigator(s) {
+ if(!investigationEnded(s)||investigationWon(s)||s.entry===574&&s.darkSea?.landed) return null;
+ const next=ORDER[ORDER.indexOf(investigator(s).key)+1];
+ return next?INVESTIGATORS[next]:null;
+}
+export function inheritInvestigation(original,allocation) {
+ const profile=nextInvestigator(original);
+ if(!profile) throw new Error('There is no next investigator for this ending.');
+ const days=profile.key==='wilson'?7:3;
+ const time=original.time+days*DAY;
+ const s=beginInvestigator(original.id,original.name,profile,allocation,time);
+ s.notes=original.notes;
+ s.log=structuredClone(original.log);
+ log(s,`${profile.name} takes up the investigation after ${days} days without word from ${investigator(original).name}.`);
+ return s;
 }
 export function skill(s,name) {
  if(name==='Luck') return s.luck;
  if(name==='Sanity') return s.sanity;
  if(name==='Cthulhu Mythos') return s.mythos;
- if(Object.hasOwn(CHARACTERISTICS,name)) return Math.max(0,CHARACTERISTICS[name]-puzzleSkillPenalty(s,name)-lostCityDexPenalty(s,name));
- return Math.min(99,(BASE_SKILLS[name]||0)+(s.allocation[name]||0)+darkSeaSkillBonus(s,name));
+ const {characteristics}=investigator(s);
+ if(Object.hasOwn(characteristics,name)) return Math.max(0,characteristics[name]-puzzleSkillPenalty(s,name)-lostCityDexPenalty(s,name));
+ return Math.min(99,trainedSkill(s,name)+darkSeaSkillBonus(s,name));
 }
 export function successLevel(roll,base,required=base) {
  if(roll===100||(required<50&&roll>=96)) return 'Fumble';
@@ -209,7 +248,8 @@ export function isOpen(location,time) {
  return weekday(time,LOCATIONS[location].lastWeekday)&&hours.some(([start,end])=>h>=start&&h<end);
 }
 export function canLeaveLocation(s) {
- if(s.pending||s.phase!=='playing'||s.flags.caughtOnEntry||[12,13,79,100,112,147,172,197,219,222,227,240,241,375,'fuzira-mirror-hound'].includes(s.entry)) return false;
+ if(s.pending||s.phase!=='playing'||investigationEnded(s)||s.flags.caughtOnEntry||[12,13,79,100,112,147,172,197,219,222,227,240,241,375,554,'fuzira-mirror-hound'].includes(s.entry)) return false;
+ if(startingApartment(s)&&s.sleptNight===null) return false;
  if(s.darkSea||s.location==='liner'||PAR_LOCKED_ENTRIES.has(s.entry)||BR_LOCKED_ENTRIES.has(s.entry)||s.location==='amarna'&&Object.hasOwn(PUZZLE_SCENES,s.entry)) return false;
  if(s.location!=='harding') return true;
  return [113,23,45,89,90,2,51].includes(s.entry)||(s.entry===7&&s.flags.windowQuiet===true);
@@ -284,7 +324,7 @@ function nextSailing(time) {
 }
 
 export function actions(s) {
- if(s.phase!=='playing'||s.pending) return [];
+ if(s.phase!=='playing'||s.pending||investigationEnded(s)) return [];
  const a=[], add=(id,label,detail='',disabled=false)=>a.push({id,label,detail,disabled});
  if(s.flags.caughtOnEntry) { add('caught','Someone has heard you','Continue'); return a; }
  if(s.location==='liner'&&s.entry===187) return voyageActions(s);
@@ -292,6 +332,15 @@ export function actions(s) {
   if(!s.flags.telegramRead) add('telegram','Read the telegram','A message from Athens');
   else add('begin','Reply, pack, and turn in','Continue to 2 September · 6 AM');
   return a;
+ }
+ if(startingApartment(s)&&s.sleptNight===null) {
+  add('successor-morning','Finish packing and turn in',`Continue to ${date(dayStart(s.time)+DAY)} · 6 AM`);
+  return a;
+ }
+ if(s.location==='rochester') {
+  return Object.entries(rochesterPorts).map(([id,port])=>({
+   id:`rochester-${id}`,label:`Go ashore in ${port}`,detail:LOCATIONS[id].name,disabled:false,
+  }));
  }
  if(s.location==='home'&&s.entry===102) {
   if(s.time<LATE_ARKHAM) add('eat','Prepare a meal','1 hour · meals must be at least 6 hours apart',!canEat(s));
@@ -380,7 +429,7 @@ export function actions(s) {
  }
  if(s.entry===NEWS_AVAILABILITY_ENTRY&&isOpen('nySun',s.time)) add('ny-sun-open','Read today’s Sun','No time passes');
  if(s.location==='liner') a.push(...linerChoices(s.entry).filter(choice=>combatActionsAvailable(s,choice)));
- if(s.location==='antarctica'&&s.entry===520&&s.hp<9) add('antarctica-medical','Seek treatment at camp');
+ if(s.location==='antarctica'&&s.entry===520&&s.hp<investigator(s).hp) add('antarctica-medical','Seek treatment at camp');
  if(s.location==='antarctica'&&s.entry===585) add('antarctica-medical-return','Return to the expedition camp');
  if([38,585].includes(s.entry)) a.push(...serviceActions(s,isOpen));
  if(s.entry===113) {
@@ -409,7 +458,8 @@ export function actions(s) {
  return a;
 }
 export function travelOptions(s) {
- return Object.entries(LOCATIONS).filter(([,l])=>(l.region||'arkham')===region(s)).map(([id,l])=>({id,...l,open:id==='nySun'||isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
+ if(s.location==='rochester') return [];
+ return Object.entries(LOCATIONS).filter(([id,l])=>(l.region||'arkham')===region(s)&&(!Object.hasOwn(SUCCESSOR_LOCATIONS,id)||id===s.location)).map(([id,l])=>({id,...l,open:id==='nySun'||isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
 }
 function startCheck(s,id,rollFn) {
  const r=CHECKS[id],base=checkBase(s,r),target=difficultyTarget(base,r.difficulty);
@@ -444,6 +494,19 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
  if(Object.hasOwn(CHECKS,id)) { startCheck(s,id,rollFn); return s; }
  if(id==='telegram') { unlock(s,'telegram'); s.flags.telegramRead=true; return s; }
  if(id==='begin') { s.time=MORNING;s.sleep=8;s.sleptNight=dayStart(START);go(s,102);log(s,'Replied to Gliere and Ernest Holt, packed, and slept. Awake on 2 September.');return s; }
+ if(id==='successor-morning') {
+  s.sleptNight=dayStart(s.time);
+  s.time=s.sleptNight+DAY+6*HOUR;
+  s.sleep=8;
+  log(s,`${investigator(s).name} finishes preparing and wakes at 6 AM in New York.`);
+  return s;
+ }
+ if(id.startsWith('rochester-')) {
+  s.location=id.slice('rochester-'.length);
+  go(s,LOCATIONS[s.location].entry);
+  log(s,`Went ashore from the USS Rochester in ${rochesterPorts[s.location]}.`);
+  return s;
+ }
  if(['rest','hotel-rest','boston-rest','alexandria-rest','athens-rest','amarna-car-rest'].includes(id)) {
   s.sleptNight=nightStart(s.time);
   s.sleep=sleepHours(s);
@@ -700,15 +763,17 @@ function validRoll(p,s,pending) {
  const required=difficultyTarget(p.base,r.difficulty);
  if(p.target!==required) return false;
  if(pending) return combatActionsAvailable(s,r)&&egyptCheckAvailable(s,p.id)&&s.entry===r.entry&&s.phase==='playing'&&p.base===checkBase(s,r)&&p.level===successLevel(p.roll,p.base,p.target);
- if(!num(p.adjusted,1,100)||!num(p.spent,0,50)||p.adjusted!==p.roll-p.spent||p.level!==successLevel(p.adjusted,p.base,p.target)||p.success!==checkSucceeded(r,p.adjusted,p.target,p.level)) return false;
+ if(!num(p.adjusted,1,100)||!num(p.spent,0,investigator(s).luck)||p.adjusted!==p.roll-p.spent||p.level!==successLevel(p.adjusted,p.base,p.target)||p.success!==checkSucceeded(r,p.adjusted,p.target,p.level)) return false;
  if(p.spent&&(r.noLuck||['Luck','Sanity'].includes(p.skill)||successLevel(p.roll,p.base,p.target)==='Fumble'||p.adjusted===1)) return false;
  return p.clue===null||(Object.hasOwn(CLUES,p.clue)&&s.clues.includes(p.clue));
 }
 export function validateSave(s) {
- if(!plain(s)||s.version!==VERSION||!str(s.id,100)||!s.id||!str(s.name,60)||!validAllocation(s.allocation)) return false;
- if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HALF_HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,4)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,100000)||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
+ if(!plain(s)||s.version!==VERSION||!Object.hasOwn(INVESTIGATORS,s.investigator)||!str(s.id,100)||!s.id||!str(s.name,60)||!validAllocation(s.allocation,s.investigator)) return false;
+ const profile=investigator(s);
+ if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HALF_HOUR!==0||!num(s.hp,0,profile.hp)||!num(s.mythos,0,4)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,profile.luck)||!num(s.bank,0,profile.key===ORDER[0]?profile.funds:0)||!num(s.cash,0,100000)||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
  if(!Object.hasOwn(LOCATIONS,s.location)||!['playing','complete','ending'].includes(s.phase)||!Array.isArray(s.clues)||s.clues.length>Object.keys(CLUES).length||!s.clues.every(c=>Object.hasOwn(CLUES,c))||new Set(s.clues).size!==s.clues.length) return false;
  if(!ENTRIES[s.location]?.includes(s.entry)||!plain(s.flags)) return false;
+ if(Object.hasOwn(SUCCESSOR_LOCATIONS,s.location)&&s.location!==profile.location) return false;
  const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed','hospitalTreated','athensHotelStayed',...CASE_FLAGS,...CAFE_FLAGS,...AM_FLAGS,...CM_FLAGS,...PAR_FLAGS,...CITY_FLAGS,...PUZZLE_FLAGS,...BR_FLAGS,...DS_FLAGS,...AP_FLAGS,...LC_FLAGS];
  if(Object.entries(s.flags).some(([k,v])=>k==='endReason'?v!=='boston':!boolFlags.includes(k)||typeof v!=='boolean')) return false;
  if(s.flags.hospitalTreated&&s.entry!==585) return false;
@@ -738,7 +803,7 @@ export function validateSave(s) {
  return true;
 }
 export function migrateSave(original) {
- const s=[3,4,5,6,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
+ const s=[3,4,5,6,7,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
  if(s.version===2) {
   s.version=3;
   s.mealDebt=0;
@@ -771,13 +836,17 @@ export function migrateSave(original) {
   if(s.phase==='complete'&&(s.location==='athensHarbor'&&s.entry===173||s.location==='alexandriaHarbor'&&s.entry===195)) s.phase='playing';
  }
  if(s.version===6) {
-  s.version=VERSION;
+  s.version=7;
   if(s.phase==='complete'&&s.location==='darkSea'&&s.entry===520&&s.darkSea?.landed) {
    s.location='antarctica';
    s.phase='playing';
   }
   if(Array.isArray(s.visited)&&s.visited.includes(520)&&Array.isArray(s.clues)&&!s.clues.includes('antarcticExpeditionMap')) unlock(s,'antarcticExpeditionMap');
   if(Array.isArray(s.visited)&&s.visited.includes('dark-sea-reassured')) s.flags.antarcticEducationAid=true;
+ }
+ if(s.version===7) {
+  s.version=VERSION;
+  s.investigator=ORDER[0];
  }
  if(!validateSave(s)) throw new Error('This dossier could not be read safely. The original has not been changed.');
  return s;

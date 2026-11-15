@@ -1,6 +1,6 @@
 import { DAY, HOUR, canEat, dayStart, sleepHours } from './calendar.js';
+import { startingHealth } from './investigators.js';
 
-const MAX_HP = 9;
 const GOODS = {
  'buy-flashlight': 'Flashlight',
  'buy-rope': 'Rope',
@@ -36,9 +36,10 @@ export function serviceActions(s, isOpen) {
  }
  if (s.entry !== 585) return [];
  const treated = s.flags.hospitalTreated;
+ const fullHealth = s.hp >= startingHealth(s);
  return [{
-  id: 'hospital-treatment', label: treated ? 'Stay another day' : 'Receive treatment', disabled: s.hp >= MAX_HP,
-  detail: s.hp >= MAX_HP ? 'Health is already full' : treated ? '24 hours · regain 1 health' : `24 hours · Luck ${s.luck}% · regain 1D3 or 2D3 health`
+  id: 'hospital-treatment', label: treated ? 'Stay another day' : 'Receive treatment', disabled: fullHealth,
+  detail: fullHealth ? 'Health is already full' : treated ? '24 hours · regain 1 health' : `24 hours · Luck ${s.luck}% · regain 1D3 or 2D3 health`
  }];
 }
 
@@ -95,7 +96,7 @@ export function performService(s, id, {advance, log, rollFn, rollD3 = d3}) {
   log(s, `Hospital Luck: rolled ${roll} against ${s.luck} (${success ? 'success' : 'failure'}). Recovery: ${dice.length}D3 rolled ${dice.join(' + ')}.`);
  }
  stayInHospital(s, advance, log);
- const gained = Math.min(recovery, MAX_HP - s.hp);
+ const gained = Math.min(recovery, startingHealth(s) - s.hp);
  s.hp += gained;
  s.flags.hospitalTreated = true;
  log(s, `Completed a day of hospital treatment and regained ${gained} health.`);

@@ -26,12 +26,11 @@ import { NYC_SCENES, NYC_LOCATIONS, NYC_CLUES, NYC_CHECKS } from './new-york.js'
 import { SERVICES_SCENES } from './arkham-services.js';
 import { LATER_SCENES } from './arkham-later.js';
 import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
+import { COMMON_SKILLS, INVESTIGATORS, SUCCESSOR_LOCATIONS, SUCCESSOR_SCENES } from './investigators.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
-export const BASE_SKILLS = {
- 'Accounting':5,'Anthropology':1,'Appraise':5,'Archaeology':1,'Art/Craft (Photography)':5,'Charm':15,'Climb':20,'Credit Rating':35,'Disguise':5,'Dodge':30,'Drive Auto':20,'Electrical Repair':10,'Fast Talk':5,'Fighting (Brawl)':25,'Firearms (Handgun)':20,'Firearms (Rifle/Shotgun)':25,'First Aid':30,'History':45,'Intimidate':15,'Jump':20,'Language (German)':90,'Language (English)':60,'Language (Latin)':45,'Language (Nordic)':40,'Language (Hieroglyphics)':50,'Language (Greek)':1,'Language (French)':1,'Language (Arabic)':1,'Law':5,'Library Use':60,'Listen':20,'Locksmith':1,'Mechanical Repair':10,'Medicine':1,'Natural World':10,'Navigate':10,'Occult':5,'Operate Heavy Machinery':1,'Persuade':40,'Pilot (Aircraft)':1,'Psychoanalysis':1,'Psychology':30,'Ride':5,'Science (Astronomy)':1,'Science (Cryptography)':40,'Sleight of Hand':10,'Spot Hidden':25,'Stealth':20,'Survival (Desert)':10,'Swim':20,'Throw':20,'Track':10
-};
-export const SUGGESTED = {'Library Use':20,'Spot Hidden':30,'Listen':20,'Persuade':20,'Stealth':20,'Dodge':20,'Language (Greek)':20};
+export const BASE_SKILLS = {...COMMON_SKILLS,...INVESTIGATORS.grunewald.skills};
+export const SUGGESTED = INVESTIGATORS.grunewald.suggested;
 export const LOCATIONS = {
  home:{name:"Grunewald’s home",entry:102,hours:[0,24],description:'A quiet place to eat, rest, and make telephone calls.'},
  bank:{name:'First National Bank',entry:3,hours:[9,15],description:'Withdraw travel funds from your account.'},
@@ -60,6 +59,7 @@ export const LOCATIONS = {
  ...BR_TRAVEL_LOCATIONS,
  ...BR_LOCATIONS,
  ...DS_LOCATIONS,
+ ...SUCCESSOR_LOCATIONS,
  antarctica:{name:'Antarctica Base Camp',entry:520,region:'antarctica',hours:[0,24],description:'The Starkweather–Moore expedition camp.'}
 };
 export const CLUES = {
@@ -142,6 +142,7 @@ export const SCENES = {
  ...DS_SCENES,
  ...AP_SCENES,
  ...LC_SCENES,
+ ...SUCCESSOR_SCENES,
  ...COMBAT_SCENES,
  ...EARLY_SCENES,
  ...LATE_SCENES,

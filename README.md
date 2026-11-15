@@ -18,6 +18,8 @@ Play the opening telegram and prepare in Arkham across multiple days before taki
 
 Follow the expedition lead to Bremen and board The Dark Sea. Investigate aboard, or land at Antarctica base camp and choose one of three expedition parties. The Lost City has explorable streets, underground passages, and several endings. Existing base camp dossiers resume at their saved date.
 
+At eligible endings, pass the investigation from Grunewald to Ernest Holt, Lydia Lau, and Devon Wilson. Each starts with their own character sheet and supplies. Journal notes and the event timeline remain in the same dossier.
+
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 
 ## Checks and build

@@ -1,3 +1,5 @@
+import { startingHealth } from './investigators.js';
+
 export const HOUR = 3600000;
 export const HALF_HOUR = HOUR / 2;
 export const DAY = 24 * HOUR;
@@ -39,7 +41,7 @@ export function advanceCalendar(state, hours, onMidnight, log, sleeping = false,
     state.hp = Math.max(0, state.hp - 1);
     log(state, 'An overdue meal was missed. Lost 1 health from fasting.');
    } else if (!overdue && !state.fastingToday && !medicalCare) {
-    state.hp = Math.min(9, state.hp + 1);
+    state.hp = Math.min(startingHealth(state), state.hp + 1);
    }
    state.fastingToday = false;
    onMidnight(state);

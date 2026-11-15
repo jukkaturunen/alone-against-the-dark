@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions,skill} from '../web/engine.js';
+import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions,skill,investigator,nextInvestigator,inheritInvestigation} from '../web/engine.js';
 import {SUGGESTED} from '../web/data.js';
 import {exportSave,importSave,loadLibrary,saveLibrary} from '../web/storage.js';
 const fresh=()=>newGame('test-dossier','Test',SUGGESTED);
@@ -103,7 +103,7 @@ test('September 9 changes home and faculty entries without looping',()=>{
 });
 
 test('October newspaper report opens and returns to the newspaper',()=>{
- let s=travel(wait(travel(morning(),'depot'),29*24),'newspaper');
+ let s=travel({...travel(morning(),'depot'),time:Date.UTC(1931,9,1,7)},'newspaper');
  s=act(s,'october-news');
  assert.equal(s.entry,172);
  assert.equal(act(s,'news-return').entry,60);
@@ -671,6 +671,7 @@ test('investigating Jeffries’ locker can reach the sea victory ending',()=>{
  s=act(resolveRoll(pending),'dark-sea-throw-top-overboard');
  assert.equal(s.entry,433);
  assert.equal(s.phase,'ending');
+ assert.equal(nextInvestigator(s),null);
  assert(s.hp>0);
  assert(validateSave(s));
 });
@@ -693,6 +694,7 @@ test('expedition parties advance to the printed journal dates and each can finis
   const end=act(trip,ending);
   assert.equal(end.entry,574);
   assert.equal(end.phase,'ending');
+  assert.equal(nextInvestigator(end),null);
   assert.deepEqual(importSave(exportSave(end)),end);
  }
  const city=lostCity(camp);
@@ -700,6 +702,82 @@ test('expedition parties advance to the printed journal dates and each can finis
  assert.equal(city.time,Date.UTC(1932,1,8));
  assert(city.flags.antarcticJones);
  assert(city.clues.includes('lostCityMap'));
+});
+
+test('a v7 ending passes the same journal through all successors at the printed intervals',()=>{
+ const original=act(act(travel(wait(morning(),1),'university'),'dean'),'abandon');
+ const {investigator:profile,...legacy}=original;
+ const restored=importSave(JSON.stringify({format:'aatd-save',version:7,game:{...legacy,version:7,notes:'Follow the lead.'}}));
+ assert.equal(investigator(restored).key,profile);
+ assert.equal(nextInvestigator(restored).key,'holt');
+ assert.throws(()=>inheritInvestigation(restored,{}));
+ const holt=inheritInvestigation(restored,nextInvestigator(restored).suggested);
+ assert.equal(holt.entry,36);
+ assert.equal(holt.time,restored.time+3*86400000);
+ assert.equal(holt.id,restored.id);
+ assert.equal(holt.notes,restored.notes);
+ assert.deepEqual(holt.log.slice(0,-1),restored.log);
+ assert.deepEqual(holt.clues,[]);
+ assert.equal(holt.hp,11);
+ assert.equal(holt.cash,35000);
+ assert.equal(skill(holt,'Firearms (Handgun)'),70);
+ assert.equal(skill(holt,'Language (Hieroglyphics)'),1);
+ assert(!travelOptions(holt).some(o=>!o.disabled));
+ const awake=act(holt,'successor-morning');
+ assert.equal(clock(awake.time),'6:00 AM');
+ const pier=travel(awake,'pier');
+ assert.equal(pier.entry,104);
+ assert(!actions(pier).some(a=>a.id==='successor-morning'));
+ const doomedHolt={...pier,sanity:0};
+ assert.deepEqual(actions(doomedHolt),[]);
+ const lau=inheritInvestigation(doomedHolt,nextInvestigator(doomedHolt).suggested);
+ assert.equal(lau.entry,37);
+ assert.equal(lau.time,doomedHolt.time+3*86400000);
+ assert.equal(lau.cash,700);
+ assert.equal(skill(lau,'Art/Craft (Copy Writing)'),65);
+ const doomedLau={...act(lau,'successor-morning'),hp:0};
+ const wilson=inheritInvestigation(doomedLau,nextInvestigator(doomedLau).suggested);
+ assert.equal(wilson.entry,554);
+ assert.equal(wilson.time,doomedLau.time+7*86400000);
+ assert.equal(skill(wilson,'Navigate'),60);
+ assert.equal(nextInvestigator({...wilson,sanity:0}),null);
+ assert.deepEqual(importSave(exportSave(wilson)),wilson);
+ for(const [port,entry] of [['pier',104],['athensHarbor',173],['alexandriaHarbor',195],['bremenHarbor',449]]) {
+  const ashore=act(wilson,`rochester-${port}`);
+  assert.equal(ashore.entry,entry);
+  assert.equal(ashore.location,port);
+  assert.equal(ashore.time,wilson.time);
+  assert.equal(ashore.hp,13);
+  assert.deepEqual(importSave(exportSave(ashore)),ashore);
+ }
+});
+
+test('successors use distinct negotiation routes to board The Dark Sea',()=>{
+ const grunewald=act(act(travel(wait(morning(),1),'university'),'dean'),'abandon');
+ const successor=s=>inheritInvestigation(s,nextInvestigator(s).suggested);
+ const holt=successor(grunewald);
+ const lau=successor({...holt,sanity:0});
+ const wilson=successor({...lau,sanity:0});
+ const captain=s=>choose({...s,location:'darkSeaGangplank',entry:486,visited:[...s.visited,486]},
+  'dark-sea-captain','dark-sea-ask-for-berth');
+ const holtPitch=captain(holt);
+ const refused=expeditionRoll(holtPitch,'dark-sea-holt-berth-persuade',100);
+ assert(!actions(refused).some(a=>a.id==='dark-sea-holt-berth-charm'&&!a.disabled));
+ const offered=expeditionRoll(holtPitch,'dark-sea-holt-berth-charm');
+ assert.equal(offered.entry,489);
+ assert(validateSave(act(offered,'dark-sea-holt-accept-berth')));
+ let disguise=act(captain(lau),'dark-sea-lau-ask-for-berth');
+ disguise=expeditionRoll(disguise,'dark-sea-lau-disguise');
+ assert.equal(disguise.entry,463);
+ assert(validateSave(disguise));
+ const approach=act(captain(wilson),'dark-sea-wilson-ask-for-berth');
+ assert.equal(act(approach,'dark-sea-wilson-uniform').entry,499);
+ const berth=choose(approach,'dark-sea-wilson-civilian','dark-sea-wilson-accept-berth');
+ assert.equal(berth.entry,500);
+ const camp=expeditionCamp(berth);
+ assert(!actions(camp).some(a=>a.id==='antarctic-join-c'));
+ assert(actions(camp).some(a=>a.id==='antarctic-apply-c'));
+ assert.deepEqual(importSave(exportSave(camp)),camp);
 });
 
 test('a saved Lost City descent uses the lower skill, and the sanctuary amulet can win',()=>{

@@ -139,3 +139,11 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - The camp, City of the Old Ones, and underground intersection use illustrations from the adventure. The southwest underground passage follows entry 555's written direction to 564 where the map gives a conflicting number.
 - The combined descent uses one percentile roll against the lower of Climb and Jump. The cavern tracks Sanity loss, permanent Dexterity loss, and item use. The Old One's offer appears at entry 432. Its transport and defense powers beyond the city await the cross-region routes.
 - Schema 7 reopens entry 520 at its original landfall time. Shipboard dossiers keep their pending rolls and history.
+
+## Investigator succession (v0.13.0)
+
+- Eligible endings pass the same dossier to Ernest Holt, Lydia Lau, and Devon Wilson in that order. Holt and Lau start 72 hours after the previous investigator stops. Wilson starts seven days after Lau. Each successor assigns 150 points and starts with the resources on their handout.
+- Freeform journal notes and the event timeline carry forward. Evidence discovery, inventory, checks, and travel progress start fresh. Recovery of a predecessor's possessions and the optional handoff during temporary insanity are pending.
+- Earlier uses of entry 574 with an available successor present the disaster as a possible future, so the next investigator can still act. Victories and Antarctica's world-loss ending close the dossier.
+- Wilson can go ashore at New York, Piraeus, Alexandria, or Bremen. Entry 554 calls his partner Nora, but the game uses Lydia, consistent with entry 37 and both investigator sheets.
+- Each successor can negotiate for a berth on The Dark Sea. Wilson's civilian qualification includes training from his sheet and allocated points above the common starting chances.

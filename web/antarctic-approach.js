@@ -70,7 +70,8 @@ const check = (entry,skill,label,successEntry,failureEntry,options={}) => ({entr
 const slug = text => text.toLowerCase().replaceAll(' ','-');
 const supportFlag = {Blake:'antarcticBlakeAid',Rambeau:'antarcticRambeauAid'};
 const sponsored = s => s.flags.antarcticBlakeAid||s.flags.antarcticRambeauAid;
-const canJoin = s => s.darkSea.boarded===500||s.flags.antarcticIdentityRevealed||sponsored(s);
+const canJoinOpenly = s => !s.investigator||['grunewald','holt'].includes(s.investigator);
+const canJoin = s => s.darkSea.boarded===500&&canJoinOpenly(s)||s.flags.antarcticIdentityRevealed||sponsored(s);
 const returnCamp = choice('return-to-camp','Return to the base camp',520);
 
 export const AP_CHOICES = {
@@ -78,9 +79,9 @@ export const AP_CHOICES = {
   const trip=`Trip ${id.toUpperCase()} · ${route}`;
   return [choice(`join-${id}`,`Join ${trip}`,entry,{detail:roster,when:canJoin}),
    choice(`apply-${id}`,`Apply for ${trip}`,`antarctic-apply-${id}`,{detail:roster,when:s=>!canJoin(s)})];
- }),choice('reveal-identity','Introduce yourself as Professor Grunewald',520,{
-  detail:'The professor can choose a flight directly',flag:'antarcticIdentityRevealed',
-  when:s=>s.darkSea.boarded===501&&!canJoin(s),
+ }),choice('reveal-identity','Introduce yourself under your own name',520,{
+  detail:'Qualify to choose a flight directly',flag:'antarcticIdentityRevealed',
+  when:s=>s.darkSea.boarded===501&&canJoinOpenly(s)&&!canJoin(s),
  })],
  525:[choice('wait-with-blake','Wait at base camp for word of Rambeau',574)],
  527:[choice('leave-the-plane','Explore the ruins the next morning',534)],
