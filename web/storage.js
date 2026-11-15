@@ -4,7 +4,8 @@ const KEY='aatd.dossiers.v1';
 const BACKUP_V1='aatd.dossiers.backup-before-v2';
 const BACKUP_V3='aatd.dossiers.backup-before-v3';
 const BACKUP_V4='aatd.dossiers.backup-before-v4';
-const SUPPORTED_VERSIONS=[1,2,3,VERSION];
+const BACKUP_V5='aatd.dossiers.backup-before-v5';
+const SUPPORTED_VERSIONS=[1,2,3,4,VERSION];
 const LIBRARY_ERROR='The saved dossiers could not be read. Your browser copy has not been overwritten.';
 
 function parseLibrary(raw) {
@@ -30,7 +31,7 @@ function backUpLibrary(data,raw,storage) {
  if(data.version===VERSION) return;
  try {
   if(data.version===1&&storage.getItem(BACKUP_V1)==null) storage.setItem(BACKUP_V1,raw);
-  const backup=data.version<=2?BACKUP_V3:BACKUP_V4;
+  const backup=data.version<=2?BACKUP_V3:data.version===3?BACKUP_V4:BACKUP_V5;
   if(storage.getItem(backup)==null) storage.setItem(backup,raw);
  }
  catch { throw new Error('A backup could not be saved before upgrading. Free browser storage or export your old dossier first.'); }

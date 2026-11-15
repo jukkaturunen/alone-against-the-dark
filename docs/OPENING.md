@@ -86,3 +86,11 @@ Save schema 3 preserves historical meals, notes, clues, and pending dice. A migr
 - The New York Sun uses the regular daily hours or a Luck check outside them. Arrival costs the usual hour of local travel. Reports unlock on the dates given by the source. Entry 190 unlocks the dispatch at entry 156 from December 1, which retains its printed December 20 dateline.
 - New York’s taxis use the shared local travel time. Street food takes one hour and triggers a Constitution check on a 10 on 1D10. Failure takes three hours and costs one health.
 - Pier 56 lists the next departure. The board action is available on the departure date through noon and advances to that departure time. Entry 187 saves the embarkation checkpoint for the future ship activity table. Tickets and travel expenses follow the optional book-keeping rule, so the purchase is implicit in boarding.
+
+
+## Cunard crossing (v0.6.0)
+
+- Entry 187 offers activities one period at a time rather than asking players to commit to all three at the start of the day. Morning, afternoon and evening choices use the printed time slots. The ship calendar tracks days and skips ordinary hourly meal and sleep accounting. A printed “move on a day” ends the remaining periods for that day.
+- The ship encounters use staged percentile checks and a compact combat sequence. Shipboard treatment uses voyage days. After the guarded escape at 139, players can select their destination without further activity rolls. Investigator succession after an ending remains pending.
+- Gambling at 579 and 385 changes carried cash. Losses are limited to cash on hand. Routine purchases and fares follow the book’s optional expense bookkeeping rule.
+- Version 5 migrates prior entry 187 checkpoints from the saved Saturday departure to Sunday morning. Checkpoints at Piraeus and Alexandria preserve landfall at noon Monday and 1 PM Tuesday, respectively.

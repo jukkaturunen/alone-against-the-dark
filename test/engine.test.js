@@ -165,18 +165,34 @@ test('occult readings consume time on success and grant Mythos once',()=>{
  assert.deepEqual(importSave(exportSave(s)),s);
 });
 
-test('Cunard boards Saturday at noon and saves at the ship activity table',()=>{
+test('Cunard boards at noon Saturday and resumes through both landfalls',()=>{
  let s=travel(newYork(),'pier');
  assert(actions(s).find(a=>a.id==='embark').disabled);
- assert.throws(()=>act(s,'embark'));
- s=wait(s,54);
- assert.equal(s.time,Date.UTC(1931,8,5));
- s=act(s,'embark');
- assert.equal(s.time,Date.UTC(1931,8,5,12));
+ s=act(wait(s,54),'embark');
+ assert.equal(s.voyage.departure,Date.UTC(1931,8,5,12));
+ assert.equal(s.time,Date.UTC(1931,8,6,8));
  assert.equal(s.entry,187);
- assert.equal(s.phase,'complete');
- assert.deepEqual(actions(s),[]);
+ assert.equal(s.phase,'playing');
  assert.deepEqual(importSave(exportSave(s)),s);
+ const old={...s,version:4,phase:'complete',time:s.voyage.departure};
+ delete old.voyage;
+ assert.deepEqual(importSave(JSON.stringify({format:'aatd-save',version:4,game:old})),s);
+ // Quiet itinerary interspersed with required day prompts.
+ for(let i=0;s.voyage.day<=8&&i<80;i++) {
+  const options=actions(s).filter(a=>!a.disabled);
+  const next=options.find(a=>a.id==='ship-activity-mah-jong')||options.find(a=>a.target===187);
+  assert(next,s.entry+' must allow returning to the schedule');
+  s=act(s,next.id);
+  assert(validateSave(s));
+ }
+ const athens=act(s,'ship-disembark-athens');
+ const egypt=act(s,'ship-disembark-alexandria');
+ assert.equal(athens.time,Date.UTC(1931,8,14,12));
+ assert.equal(athens.entry,173);
+ assert.equal(egypt.time,Date.UTC(1931,8,15,13));
+ assert.equal(egypt.entry,195);
+ assert(validateSave(athens));
+ assert(validateSave(egypt));
 });
 
 test('consulate hours include a lunch closure and Wilentz stores at most three purchases',()=>{
@@ -220,4 +236,58 @@ test('street food sickness resolves its mandatory Constitution check before trav
  assert.equal(failed.entry,586);
  assert.equal(travel(failed,'nyHospital').entry,585);
  assert.equal(resolveRoll(act(sick,'street-food-con',()=>1)).time,sick.time);
+});
+
+function boardLiner() {
+ return act(wait(travel(newYork(),'pier'),54),'embark');
+}
+
+function quietSlots(s,n) {
+ for(let i=0;i<n;i++) s=act(s,'ship-activity-mah-jong');
+ return s;
+}
+
+test('cabin encounter persists a pending roll and returns to the next ship day',()=>{
+ let s=act(boardLiner(),'ship-activity-room');
+ s=act(s,'ship-admit-steward');
+ const pending=act(s,'ship-steward-spot',()=>1);
+ assert.deepEqual(importSave(exportSave(pending)),pending);
+ s=resolveRoll(pending);
+ assert.equal(s.entry,91);
+ s=resolveRoll(act(s,'ship-steward-dodge',()=>1));
+ assert.equal(s.voyage.day,2);
+ assert.equal(s.entry,187);
+ assert(validateSave(s));
+});
+
+test('library encounter can end under guard and preserves Sanity and Luck checks',()=>{
+ let s=act(quietSlots(boardLiner(),8),'ship-activity-library');
+ assert.equal(s.entry,155);
+ const health=s.hp;
+ s=resolveRoll(act(s,'ship-evade-155',()=>1));
+ assert.equal(s.hp,health);
+ s=resolveRoll(act(s,'ship-run-155',()=>1));
+ const pending=act(s,'ship-library-sanity',()=>1);
+ assert.equal(luckCost(pending),null);
+ assert.deepEqual(importSave(exportSave(pending)),pending);
+ s=resolveRoll(pending);
+ s=resolveRoll(act(s,'ship-library-rescue',()=>1));
+ assert.equal(s.entry,139);
+ s=act(s,'ship-travel-under-guard');
+ assert.equal(s.voyage.day,9);
+ assert.equal(act(s,'ship-disembark-athens').entry,173);
+});
+
+test('baccarat winnings are posted to carried cash and persist in a dossier',()=>{
+ let s=act(quietSlots(boardLiner(),9),'ship-activity-stroll');
+ s=resolveRoll(act(s,'ship-corridor-spot',()=>1));
+ s=resolveRoll(act(s,'ship-corridor-know',()=>1));
+ s=act(s,'ship-leave-passage');
+ s=act(s,'ship-activity-shuffleboard');
+ assert.equal(s.entry,579);
+ const before=s.cash;
+ s=act(s,'ship-collect-baccarat');
+ assert(s.cash>=before+1&&s.cash<=before+100);
+ assert.equal(s.voyage.day,5);
+ assert.deepEqual(importSave(exportSave(s)),s);
 });

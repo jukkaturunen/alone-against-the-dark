@@ -1,20 +1,27 @@
+import { COMBAT_SCENES, COMBAT_CHOICES, combatActionsAvailable, validateShipCombat, shipCombatEffect } from './liner-combat.js';
 import { BASE_SKILLS, CLUES, LOCATIONS, CHECKS } from './data.js';
 import { ENTRY_CLUES as HARDING_CLUES, HARDING_ENTRIES } from './harding.js';
 import { NYC_ENTRIES, NYC_ENTRY_CLUES, NYC_CHOICES, NYC_CHECKS } from './new-york.js';
+import { EARLY_SCENES, EARLY_ENTRY_CLUES, EARLY_CHOICES, EARLY_REDIRECTS } from './liner-early.js';
+import { LATE_SCENES, LATE_ENTRY_CLUES, LATE_CHOICES } from './liner-late.js';
+import { SHIP_DAYS, LINER_ARRIVALS, startVoyage, finishActivity, skipVoyage, voyageActions, activityResult, arrive } from './liner.js';
 import { NY_TRAVEL_ENTRIES } from './ny-travel.js';
 import { serviceActions, performService } from './arkham-services.js';
 import { CONTACT_LOCATIONS, CONTACT_ENTRIES, CONTACT_ENTRY_CLUES, CONTACT_CHOICES, contactOpen, contactChoiceStatus } from './ny-contacts.js';
 import { NEWS_ENTRIES, NEWS_ENTRY_CLUES, NEWS_CHOICES, NEWS_AVAILABILITY_ENTRY } from './ny-news.js';
-const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES, ...CONTACT_ENTRY_CLUES, ...NEWS_ENTRY_CLUES};
+const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES, ...CONTACT_ENTRY_CLUES, ...NEWS_ENTRY_CLUES,...EARLY_ENTRY_CLUES,...LATE_ENTRY_CLUES};
 import { LATER_CHOICES } from './arkham-later.js';
 import { readLegacySave } from './legacy-save.js';
 import { HOUR, HALF_HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
 export { MORNING, mealCount, mealTarget, canEat, sleepHours };
-export const VERSION = 4;
+export const VERSION = 5;
 export const START = Date.UTC(1931, 8, 1, 20);
 
 const CHARACTERISTICS = { STR:70, CON:50, SIZ:45, DEX:60, INT:70, APP:55, POW:55, EDU:93 };
-const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES,...NY_TRAVEL_ENTRIES,...CONTACT_ENTRIES,...NEWS_ENTRIES};
+const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES,...NY_TRAVEL_ENTRIES,...CONTACT_ENTRIES,...NEWS_ENTRIES,
+ liner:[187,...SHIP_DAYS,...Object.keys({...EARLY_SCENES,...LATE_SCENES,...COMBAT_SCENES}).map(id=>/^\d+$/.test(id)?Number(id):id)],
+ athensHarbor:[173],alexandriaHarbor:[195]
+};
 export function region(s) {
  return LOCATIONS[s.location].region || 'arkham';
 }
@@ -32,6 +39,7 @@ export function newGame(id,name,allocation) {
 }
 export function skill(s,name) {
  if(name==='Luck') return s.luck;
+ if(name==='Sanity') return s.sanity;
  if(name==='Cthulhu Mythos') return s.mythos;
  if(Object.hasOwn(CHARACTERISTICS,name)) return CHARACTERISTICS[name];
  return (BASE_SKILLS[name]||0)+(s.allocation[name]||0);
@@ -55,6 +63,17 @@ function unlock(s,id) {
  if(!s.clues.includes(id)) { s.clues.push(id); log(s,`Collected: ${CLUES[id].title}.`); }
 }
 function go(s,entry) {
+ if(s.voyage&&entry===187&&s.entry!==187) {
+  delete s.voyage.struggle;
+  finishActivity(s);
+ }
+ if(s.location==='liner') {
+  const redirect=EARLY_REDIRECTS[entry]?.(s);
+  if(redirect?.target===187) {
+   finishActivity(s,redirect.advanceDay);
+   entry=187;
+  } else if(redirect) entry=redirect.target??redirect;
+ }
  s.entry=entry;
  if(!s.visited.includes(entry)) {
   s.visited.push(entry);
@@ -69,6 +88,22 @@ function go(s,entry) {
  if([23,45,89].includes(entry)) s.flags.hardingRejected=true;
  if(entry===28) delete s.flags.doorOpen;
  if(entry===7) delete s.flags.windowQuiet;
+}
+function endVoyage(s) {
+ s.phase='ending';
+ s.hp=0;
+ log(s,'The investigation ends aboard the liner.');
+}
+function changeCash(s,amount) {
+ const before=s.cash;
+ s.cash=Math.max(0,s.cash+amount);
+ const change=s.cash-before;
+ log(s,change===0?'Broke even.':`${change>0?'Won':'Lost'} $${Math.abs(change)}.`);
+}
+function rollTotal([count,sides]) {
+ let total=0;
+ for(let i=0;i<count;i++) total+=rollDie(sides);
+ return total;
 }
 function dailyCheck(id) {
  return CHECKS[id].daily === true;
@@ -107,12 +142,13 @@ export function isOpen(location,time) {
 }
 export function canLeaveLocation(s) {
  if(s.pending||s.phase!=='playing'||s.flags.caughtOnEntry||[12,13,100,147,172,197].includes(s.entry)) return false;
+ if(s.location==='liner') return false;
  if(s.location!=='harding') return true;
  return [113,23,45,89,90,2,51].includes(s.entry)||(s.entry===7&&s.flags.windowQuiet===true);
 }
 function checkAvailable(s,id) {
  const r=CHECKS[id];
- if(!r||s.entry!==r.entry||(!r.repeat&&s.attempts[id])) return false;
+ if(!r||s.entry!==r.entry||(!r.repeat&&s.attempts[id])||!combatActionsAvailable(s,r)) return false;
  if(id==='room-mythos'&&s.flags.bookSkimmed) return false;
  if(id==='ny-sun-luck'&&isOpen('nySun',s.time)) return false;
  if(r.clue&&s.clues.includes(r.clue)) return false;
@@ -162,6 +198,7 @@ export function actions(s) {
  if(s.phase!=='playing'||s.pending) return [];
  const a=[], add=(id,label,detail='',disabled=false)=>a.push({id,label,detail,disabled});
  if(s.flags.caughtOnEntry) { add('caught','Someone has heard you','Continue'); return a; }
+ if(s.location==='liner'&&s.entry===187) return voyageActions(s);
  if(s.entry===13) {
   if(!s.flags.telegramRead) add('telegram','Read the telegram','A message from Athens');
   else add('begin','Reply, pack, and turn in','Continue to 2 September · 6 AM');
@@ -228,6 +265,7 @@ export function actions(s) {
   if(s.time>=choice.availableFrom) add(choice.id,choice.label,choice.detail);
  }
  if(s.entry===NEWS_AVAILABILITY_ENTRY&&isOpen('nySun',s.time)) add('ny-sun-open','Read today’s Sun','No time passes');
+ if(s.location==='liner') a.push(...linerChoices(s.entry).filter(choice=>combatActionsAvailable(s,choice)));
  if([38,585].includes(s.entry)) a.push(...serviceActions(s,isOpen));
  if(s.entry===113) {
   const late=hour(s)>=20||hour(s)<8;
@@ -258,14 +296,24 @@ export function travelOptions(s) {
  return Object.entries(LOCATIONS).filter(([,l])=>(l.region||'arkham')===region(s)).map(([id,l])=>({id,...l,open:id==='nySun'||isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
 }
 function startCheck(s,id,rollFn) {
- const r=CHECKS[id],base=skill(s,r.skill),target=r.difficulty==='Hard'?Math.floor(base/2):base,roll=rollFn();
+ const r=CHECKS[id],base=skill(s,r.skill),target=r.difficulty==='Hard'?Math.floor(base/2):base;
+ let roll=rollFn();
  if(!Number.isInteger(roll)||roll<1||roll>100) throw new Error('Invalid dice result.');
+ if(r.bonusDie) {
+  const alternative=((rollDie(10)-1)*10+roll%10)||100;
+  log(s,`Bonus die: kept the lower of ${roll} and ${alternative}.`);
+  roll=Math.min(roll,alternative);
+ }
  const duration=r.duration??1;
  s.attempts[id]=(s.attempts[id]||0)+1;
  advance(s,duration);
  s.pending={id,roll,target,base,skill:r.skill,difficulty:r.difficulty||'Regular',duration,level:successLevel(roll,base,target)};
  log(s,`${r.skill}: rolled ${roll} against ${target} (${s.pending.level}; ${s.pending.difficulty} difficulty).`);
 }
+function linerChoices(entry) {
+ return EARLY_CHOICES[entry]||LATE_CHOICES[entry]||COMBAT_CHOICES[entry]||[];
+}
+
 export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
  const s=structuredClone(original);
  if(!actions(s).some(a=>a.id===id&&!a.disabled)) throw new Error('That action is not available now.');
@@ -292,8 +340,27 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
   advance(s,(departure-s.time)/HOUR);
   s.location='liner';
   go(s,187);
-  s.phase='complete';
   log(s,'Boarded the Cunard liner at Pier 56.');
+  startVoyage(s);
+  return s;
+ }
+ if(id.startsWith('ship-activity-')) {
+  const root=SHIP_DAYS[s.voyage.day-1];
+  const entry=activityResult(s,id);
+  if(entry&&!s.visited.includes(root)) s.visited.push(root);
+  const dayRoot=s.voyage.dayRoot;
+  if(entry&&[126,148,171].includes(dayRoot)&&!s.visited.includes(dayRoot)) s.visited.push(dayRoot);
+  const selected=voyageActions(s).find(action=>action.id===id);
+  log(s,`Shipboard activity: ${selected.label}.`);
+  if(entry===187||!entry) finishActivity(s);
+  else go(s,entry);
+  return s;
+ }
+ if(id.startsWith('ship-disembark-')) {
+  const destination=id.endsWith('athens')?'athensHarbor':'alexandriaHarbor';
+  arrive(s,destination);
+  go(s,LINER_ARRIVALS[destination].entry);
+  log(s,`Arrived at ${LOCATIONS[destination].name}.`);
   return s;
  }
  if(id==='eat'||id==='fast-rest') {
@@ -322,21 +389,28 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
   return s;
  }
  if(id==='ny-sun-open') {go(s,86);return s;}
- const choices=NYC_CHOICES[s.entry]||LATER_CHOICES[s.entry]||CONTACT_CHOICES[s.entry]||NEWS_CHOICES[s.entry];
+ const choices=s.location==='liner'?linerChoices(s.entry):NYC_CHOICES[s.entry]||LATER_CHOICES[s.entry]||CONTACT_CHOICES[s.entry]||NEWS_CHOICES[s.entry];
  const choice=(choices||[]).find(choice=>choice.id===id);
  if(choice?.topic) s.nyTopics=(s.nyTopics||0)+1;
  if(choice) {
-  advance(s,choice.duration);
+  advance(s,choice.duration??0);
+  if(shipCombatEffect(s,choice.effect,{rollDie,go,log,endVoyage,finishActivity})) return s;
+  if(choice.cashDice) changeCash(s,rollTotal(choice.cashDice));
   if(choice.item) {
    s.inventory.push(choice.item);
    log(s,`Bought ${choice.item} at E.S. Wilentz Booksellers.`);
   }
-  go(s,choice.target);
+  if(s.location==='liner'&&choice.target===187&&(choice.advanceDay||choice.skipVoyage)) {
+   if(choice.skipVoyage) skipVoyage(s);
+   else finishActivity(s,true);
+   s.entry=187;
+  } else if(choice.target) go(s,choice.target);
+  if(choice.ending) endVoyage(s);
   return s;
  }
  if([38,585].includes(s.entry)&&performService(s,id,{advance,log,rollFn})) return s;
  if(id==='october-news') {advance(s,1);go(s,172);return s;}
- if(id==='withdraw') {s.cash+=s.bank;s.bank=0;log(s,'Withdrew $2,200 in travel funds.');return s;}
+ if(id==='withdraw') {log(s,`Withdrew $${s.bank.toLocaleString('en-US')} in travel funds.`);s.cash+=s.bank;s.bank=0;return s;}
  if(id==='wait') {advance(s,1);log(s,'Waited one hour.');return s;}
  if(['phone-sailings','sailings','phone-curator','curator'].includes(id)) {advance(s,1);unlock(s,id.includes('sailings')?'sailings':'curator');return s;}
  if(id==='library') {go(s,145);return s;}
@@ -356,7 +430,7 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
 }
 export function luckCost(s) {
  const p=s.pending;
- if(!p||p.skill==='Luck'||p.level==='Fumble'||p.roll<=p.target||p.roll===1) return null;
+ if(!p||['Luck','Sanity'].includes(p.skill)||p.level==='Fumble'||p.roll<=p.target||p.roll===1) return null;
  // A zero-valued skill cannot be bought up into a critical: criticals cannot be purchased.
  const cost=p.roll-p.target;
  return p.target>1&&cost<=s.luck?cost:null;
@@ -368,6 +442,8 @@ export function resolveRoll(original,spend=false) {
  if(spend&&cost===null) throw new Error('Luck cannot alter this roll.');
  if(spend) {s.luck-=cost;log(s,`Spent ${cost} Luck. ${s.luck} Luck remains.`);}
  const adjusted=p.roll-cost,level=successLevel(adjusted,p.base,p.target),success=level!=='Fumble'&&(adjusted===1||adjusted<=p.target);
+ if(success&&r.successCashDice) changeCash(s,rollTotal(r.successCashDice));
+ if(level==='Fumble'&&r.fumbleCashDice) changeCash(s,-rollTotal(r.fumbleCashDice));
  const extraHours=success?r.successDuration:r.failureDuration;
  if(extraHours) advance(s,extraHours);
  if(!success&&r.failureDamage) {
@@ -375,8 +451,22 @@ export function resolveRoll(original,spend=false) {
   log(s,`Lost ${r.failureDamage} health while recovering.`);
  }
  if(success&&r.clue) unlock(s,r.clue);
- const target=success?r.successEntry:r.failureEntry;
- if(target) go(s,target);
+ let target=success?r.successEntry:r.failureEntry;
+ if(s.location==='liner') {
+  if(!success&&r.failureAttemptsDice) {
+   s.voyage.struggle=rollTotal(r.failureAttemptsDice);
+   log(s,`There is time for ${s.voyage.struggle} attempts to break free.`);
+  } else if(r.attemptCap||p.id==='ship-cinema-str') {
+   if(!success&&--s.voyage.struggle<=0) target=r.exhaustedEntry||'ship-cinema-death';
+   if(target!=='ship-cinema-grabbed') delete s.voyage.struggle;
+  }
+ }
+ const handled=shipCombatEffect(s,success?r.successEffect:r.failureEffect,{rollDie,go,log,endVoyage,finishActivity,level});
+ if(!handled&&target===187&&(success?r.successAdvanceDay:r.failureAdvanceDay)) {
+  finishActivity(s,true);
+  s.entry=187;
+ } else if(!handled&&target) go(s,target);
+ if(target==='ship-cinema-death') endVoyage(s);
  if(success&&r.successFlag) s.flags[r.successFlag]=true;
  if(!success&&r.caughtOnFailure) s.flags.caughtOnEntry=true;
  if(!success) log(s,r.clue?'Research revealed no useful evidence.':'The attempt failed.');
@@ -413,14 +503,14 @@ function validRoll(p,s,pending) {
  if(!num(p.roll,1,100)||!num(p.base,0,99)||p.skill!==r.skill||p.difficulty!==(r.difficulty||'Regular')||p.duration!==(r.duration??1)) return false;
  const required=r.difficulty==='Hard'?Math.floor(p.base/2):p.base;
  if(p.target!==required) return false;
- if(pending) return s.entry===r.entry&&s.phase==='playing'&&p.base===skill(s,r.skill)&&p.level===successLevel(p.roll,p.base,p.target);
+ if(pending) return combatActionsAvailable(s,r)&&s.entry===r.entry&&s.phase==='playing'&&p.base===skill(s,r.skill)&&p.level===successLevel(p.roll,p.base,p.target);
  if(!num(p.adjusted,1,100)||!num(p.spent,0,50)||p.adjusted!==p.roll-p.spent||p.level!==successLevel(p.adjusted,p.base,p.target)||p.success!==(p.level!=='Fumble'&&(p.adjusted===1||p.adjusted<=p.target))) return false;
- if(p.spent&&(p.skill==='Luck'||successLevel(p.roll,p.base,p.target)==='Fumble'||p.adjusted===1)) return false;
+ if(p.spent&&(['Luck','Sanity'].includes(p.skill)||successLevel(p.roll,p.base,p.target)==='Fumble'||p.adjusted===1)) return false;
  return p.clue===null||(Object.hasOwn(CLUES,p.clue)&&s.clues.includes(p.clue));
 }
 export function validateSave(s) {
  if(!plain(s)||s.version!==VERSION||!str(s.id,100)||!s.id||!str(s.name,60)||!validAllocation(s.allocation)) return false;
- if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HALF_HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,4)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,2200)||s.bank+s.cash>2200||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
+ if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HALF_HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,4)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,100000)||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
  if(!Object.hasOwn(LOCATIONS,s.location)||!['playing','complete','ending'].includes(s.phase)||!Array.isArray(s.clues)||s.clues.length>Object.keys(CLUES).length||!s.clues.every(c=>Object.hasOwn(CLUES,c))||new Set(s.clues).size!==s.clues.length) return false;
  if(!ENTRIES[s.location]?.includes(s.entry)||!plain(s.flags)) return false;
  const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed','hospitalTreated'];
@@ -430,8 +520,13 @@ export function validateSave(s) {
  if(s.flags.caughtOnEntry&&![141,2,11,150].includes(s.entry)) return false;
  if(s.flags.endReason!==undefined) return false;
  if(s.phase==='playing'&&s.entry===574) return false;
- if((s.phase==='complete')!==(s.location==='liner')) return false;
- if(s.phase==='ending'&&s.entry!==574) return false;
+ if((s.phase==='complete')!==['athensHarbor','alexandriaHarbor'].includes(s.location)) return false;
+ if(s.location==='liner') {
+  const v=s.voyage;
+  if(!plain(v)||!num(v.departure,START,s.time)||v.departure%HOUR!==0||hourOf(v.departure)!==12||new Date(v.departure).getUTCDay()!==6||!num(v.day,1,9)||!num(v.slot,0,v.day===9?0:2)||((s.entry==='ship-cinema-grabbed')?!num(v.struggle,1,6):v.struggle!==undefined)||s.time!==dayStart(v.departure)+v.day*DAY+[8,13,20][v.slot]*HOUR) return false;
+ } else if(s.voyage!==undefined) return false;
+ if(!validateShipCombat(s)||s.shipCombat&&s.location!=='liner') return false;
+ if(s.phase==='ending'&&s.entry!==574&&s.location!=='liner') return false;
  if(!str(s.notes,20000)||!Array.isArray(s.inventory)||s.inventory.length>100||!s.inventory.every(i=>str(i,200))||!Array.isArray(s.log)||s.log.length>15000||!s.log.every(l=>plain(l)&&num(l.time,START,s.time)&&str(l.text,500))) return false;
  if(!Array.isArray(s.meals)||s.meals.length>15000||!s.meals.every((t,i)=>num(t,MORNING,s.time)&&t%HALF_HOUR===0&&(!i||t-s.meals[i-1]>=6*HOUR))) return false;
  if(mealCount(s)>mealTarget(s)) return false;
@@ -441,7 +536,7 @@ export function validateSave(s) {
  return true;
 }
 export function migrateSave(original) {
- const s=[3,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
+ const s=[3,4,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
  if(s.version===2) {
   s.version=3;
   s.mealDebt=0;
@@ -459,11 +554,15 @@ export function migrateSave(original) {
   }
  }
  if(s.version===3) {
-  s.version=VERSION;
+  s.version=4;
   if(s.phase==='complete'&&s.entry===64&&s.location==='boston'&&s.flags?.endReason==='boston') {
    s.phase='playing';
    delete s.flags.endReason;
   }
+ }
+ if(s.version===4) {
+  s.version=VERSION;
+  if(s.phase==='complete'&&s.location==='liner'&&s.entry===187) startVoyage(s);
  }
  if(!validateSave(s)) throw new Error('This dossier could not be read safely. The original has not been changed.');
  return s;

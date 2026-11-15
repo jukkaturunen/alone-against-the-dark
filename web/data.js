@@ -1,3 +1,7 @@
+import { COMBAT_SCENES, COMBAT_CHECKS } from './liner-combat.js';
+import { LINER_SCENES, LINER_ARRIVALS } from './liner.js';
+import { EARLY_SCENES, EARLY_CLUES, EARLY_CHECKS } from './liner-early.js';
+import { LATE_SCENES, LATE_CLUES, LATE_CHECKS } from './liner-late.js';
 import { CONTACT_LOCATIONS, CONTACT_SCENES, CONTACT_CLUES } from './ny-contacts.js';
 import { NEWS_LOCATIONS, NEWS_SCENES, NEWS_CLUES, NEWS_CHECKS } from './ny-news.js';
 import { NY_TRAVEL_LOCATIONS, NY_TRAVEL_SCENES, NY_TRAVEL_CHECKS } from './ny-travel.js';
@@ -25,11 +29,14 @@ export const LOCATIONS = {
  ...NYC_LOCATIONS,
  ...CONTACT_LOCATIONS,
  ...NEWS_LOCATIONS,
- ...NY_TRAVEL_LOCATIONS
+ ...NY_TRAVEL_LOCATIONS,
+ ...LINER_ARRIVALS
 };
 export const CLUES = {
  ...HARDING_CLUES,
  ...NYC_CLUES,
+ ...EARLY_CLUES,
+ ...LATE_CLUES,
  ...CONTACT_CLUES,
  ...NEWS_CLUES,
  telegram:{title:'A telegram from Gliere',type:'Telegram · Dark 1',source:'Entry 13 · p. 12',text:'ATHENS, GREECE 9/1/31 via Kingspoint Station\n\nIN JAIL FOR ANTIQUITY THEFT — STOP — NEED HELP — STOP — CAN YOU COME STOP URGENT — STOP — SEE CORPORAL ILIONAS ATHENS BUREAU OF INVESTIGATION.\n\nGLIERE'},
@@ -44,6 +51,9 @@ export const CLUES = {
 export const CHECKS = {
  ...HARDING_CHECKS,
  ...NYC_CHECKS,
+ ...COMBAT_CHECKS,
+ ...EARLY_CHECKS,
+ ...LATE_CHECKS,
  ...NY_TRAVEL_CHECKS,
  ...NEWS_CHECKS,
  'news-library':{entry:60,skill:'Library Use',clue:'mylonas',target:48,repeat:false,daily:true},
@@ -57,6 +67,10 @@ export const SCENES = {
  ...LATER_SCENES,
  ...NYC_SCENES,
  ...NY_TRAVEL_SCENES,
+ ...LINER_SCENES,
+ ...COMBAT_SCENES,
+ ...EARLY_SCENES,
+ ...LATE_SCENES,
  ...CONTACT_SCENES,
  ...NEWS_SCENES,
  ...SERVICES_SCENES,

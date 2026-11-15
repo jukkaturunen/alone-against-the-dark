@@ -46,9 +46,16 @@ Updated: 14 November 2026.
 - Added the Greek Consulate, Wilentz Booksellers, New York Sun reports, taxis, food stands and the food-poisoning branch. New York’s hospital and store reuse entries 585 and 38.
 - Pier 56 lists the next Saturday sailing. Boarding advances to noon and saves the dossier at entry 187. Verified the pier in the browser and tested boarding, save restore, weekday hours, purchases, date gates, and street-food consequences.
 
+## v0.6.0
+
+- 119 of 593 reachable entries, up 34 from v0.5.0 (85). This includes the numbered daily activity-table branches and the two harbor checkpoints.
+- Added Cunard activity choices, shipboard encounters, recovery, gambling results, and arrival at Athens or Alexandria.
+- Schema 5 resumes old embarkation checkpoints on the first morning aboard. Verified an existing embarked save in the browser and continued past the cabin encounter to Monday.
+- 58 automated tests and the production build passed.
+
 ## Next step
 
-Implement the Cunard activity table and arrival routes. Vercel deployment and music remain later steps.
+Open Athens locations from Piraeus, beginning with the Bureau of Investigation. Extend the Alexandria route toward Cairo separately. Vercel deployment and music remain later steps.
 
 ## Resuming work
 
