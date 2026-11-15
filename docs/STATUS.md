@@ -59,9 +59,15 @@ Updated: 14 November 2026.
 - Opened the Athens Bureau of Investigation, Hall of Justice, taxi leads, and supporting city services. Added the Alexandria dockside branch, Cairo station, and scheduled rail and steamer routes.
 - Harbor checkpoints now resume at the saved arrival time. Verified an old Piraeus save through the case report and reload in the browser.
 
+## v0.8.0
+
+- 193 of 593 reachable entries, up 42 from v0.7.0 (151).
+- Added Athens’ museum, Piosotos Café, the Hawkes apartment encounter, the European edition of the New York Sun, and Cairo Museum exhibits and interviews before and after October 30.
+- Added original illustrations for three Cairo clues. Verified the Athens museum report through a browser reload and tested both Cairo exhibit dates and the staff interview.
+
 ## Next step
 
-Expand Athens locations from their leads, beginning with the National Museum and Piosotos Café. Continue Cairo from the station into the museum and other city branches. Vercel deployment and music remain later steps.
+Continue the Athens leads at the Parthenon and into the motorship route. Expand Cairo’s city locations and the route toward Tell-el-Amarna. The Cairo Museum theft and earlier confrontation remain pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

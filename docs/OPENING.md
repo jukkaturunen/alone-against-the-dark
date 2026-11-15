@@ -104,3 +104,10 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - Alexandria’s dockside conversation requires an allocated Arabic skill. Combat in the passage uses a compact percentile sequence. The Athens moderate hotel supports the first night. Its second-night branch and the onward leads from Athens and Cairo are pending.
 - Trains and steamers follow station and harbor schedules and advance the in-game clock. The Athens-to-Cairo train branch through entry 42 and long-distance sailings will open with their destination content.
 - Save schema 6 reopens old harbor checkpoints at their recorded location and time.
+
+
+## Museums and Piosotos Café (v0.8.0)
+
+- The Athens museum closes for lunch and the director is away from December onward. Its galleries share the archaeological report with the Arkham newspaper. Interview observations are recorded as evidence.
+- Cairo’s museum changes on October 30 and charges one in-game hour for each post-cutoff exhibit or office visit. The curator interviews and exhibits are playable. The theft and earlier confrontation branches are deferred.
+- At Piosotos, Christos can interpret automatically. The apartment encounter checks five observations before the Intelligence roll. Intelligence bonuses are capped at 99%. The card game’s twenty minutes are rounded to half an hour to match the game clock. Its $35 in winnings change carried cash.

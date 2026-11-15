@@ -1,3 +1,6 @@
+import { CM_LOCATIONS, CM_SCENES, CM_CLUES, CM_CHECKS } from './cairo-museum.js';
+import { AM_LOCATIONS, AM_SCENES, AM_CLUES, AM_CHECKS } from './athens-museum.js';
+import { CAFE_LOCATIONS, CAFE_SCENES, CAFE_CLUES, CAFE_CHECKS } from './athens-cafe.js';
 import { CASE_LOCATIONS, CASE_SCENES, CASE_CLUES, CASE_CHECKS } from './athens-case.js';
 import { EGYPT_LOCATIONS, EGYPT_SCENES, EGYPT_CLUES, EGYPT_CHECKS } from './alexandria-route.js';
 import { MED_LOCATIONS, MED_SCENES } from './mediterranean.js';
@@ -36,13 +39,19 @@ export const LOCATIONS = {
  ...LINER_ARRIVALS,
  ...MED_LOCATIONS,
  ...EGYPT_LOCATIONS,
- ...CASE_LOCATIONS
+ ...CASE_LOCATIONS,
+ ...CAFE_LOCATIONS,
+ ...AM_LOCATIONS,
+ ...CM_LOCATIONS
 };
 export const CLUES = {
  ...HARDING_CLUES,
  ...NYC_CLUES,
  ...EGYPT_CLUES,
  ...CASE_CLUES,
+ ...CAFE_CLUES,
+ ...AM_CLUES,
+ ...CM_CLUES,
  ...EARLY_CLUES,
  ...LATE_CLUES,
  ...CONTACT_CLUES,
@@ -61,6 +70,9 @@ export const CHECKS = {
  ...NYC_CHECKS,
  ...EGYPT_CHECKS,
  ...CASE_CHECKS,
+ ...CAFE_CHECKS,
+ ...AM_CHECKS,
+ ...CM_CHECKS,
  ...COMBAT_CHECKS,
  ...EARLY_CHECKS,
  ...LATE_CHECKS,
@@ -81,6 +93,9 @@ export const SCENES = {
  ...MED_SCENES,
  ...EGYPT_SCENES,
  ...CASE_SCENES,
+ ...CAFE_SCENES,
+ ...AM_SCENES,
+ ...CM_SCENES,
  ...COMBAT_SCENES,
  ...EARLY_SCENES,
  ...LATE_SCENES,

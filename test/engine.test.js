@@ -398,3 +398,70 @@ test('Athens case report, interpreter and letter persist across save and travel'
  assert(s.clues.includes('gliereLetter'));
  assert.deepEqual(importSave(exportSave(s)),s);
 });
+
+test('Athens museum reveals the display and resolves Pisistratos’s interview in order',()=>{
+ let s=landfall('athens');
+ assert.throws(()=>travel(s,'athensMuseum'));
+ s=travel(wait(s,2),'athensMuseum');
+ s=act(s,'athens-museum-galleries');
+ s=act(s,'athens-museum-read-report');
+ assert(s.clues.includes('device'));
+ s=act(s,'athens-museum-return-display');
+ s=resolveRoll(act(s,'athens-museum-luck',()=>1));
+ for(const topic of ['gliere','loan','clock']) {
+  s=resolveRoll(act(s,`athens-museum-gallery-${topic}-psychology`,()=>1));
+  s=act(s,`athens-museum-gallery-${topic}-lie-continue`);
+ }
+ assert.equal(s.clues.filter(id=>id.startsWith('athensMuseum')).length,3);
+ assert(validateSave(s));
+});
+
+test('Hawkes’s apartment uses observations for the pending Intelligence roll',()=>{
+ let s=travel(landfall('athens'),'athensCafe');
+ s=act(act(s,'cafe-hawkes'),'cafe-accept');
+ assert.throws(()=>travel(s,'athensHarbor'));
+ for(const id of ['edu','mythos','occult','spot','listen']) s=resolveRoll(act(s,'hawkes-'+id,()=>1));
+ s=act(s,'hawkes-interpret');
+ s=act(s,'hawkes-int',()=>91);
+ assert.equal(s.pending.target,99);
+ assert.deepEqual(importSave(exportSave(s)),s);
+ s=resolveRoll(s);
+ const escaped=resolveRoll(act(s,'hawkes-dodge',()=>1));
+ assert.equal(escaped.entry,'hawkes-escape');
+ const ended=resolveRoll(act(s,'hawkes-dodge',()=>100));
+ assert.equal(ended.phase,'ending');
+ assert(validateSave(ended));
+});
+
+test('Cairo museum keeps split hours and switches the exhibition on October 30',()=>{
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ let s=travel(cairo,'cairoMuseum');
+ assert.equal(s.entry,206);
+ s=act(s,'cm-device');
+ assert(s.clues.includes('cairoDeviceDisplay'));
+ s=act(s,'cm-return-early');
+ s=act(s,'cm-treasures');
+ s=act(s,'cm-see-amulet');
+ s=resolveRoll(act(s,'cm-amulet-int',()=>1));
+ assert(s.clues.includes('cairoAkhenatenAmulet'));
+ assert.deepEqual(importSave(exportSave(s)),s);
+ const late=travel({...cairo,time:Date.UTC(1931,9,30,8)},'cairoMuseum');
+ assert.equal(late.entry,300);
+ assert.throws(()=>travel({...cairo,time:Date.UTC(1931,9,30,11)},'cairoMuseum'));
+ const exhibit=act(late,'cm-device-late');
+ assert.equal(exhibit.time-late.time,3600000);
+ assert(exhibit.clues.includes('cairoDeviceMissing'));
+ assert(validateSave(exhibit));
+});
+
+test('Cairo museum staff investigation unlocks Keh’s fate after the cutoff',()=>{
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ let s=travel({...cairo,time:Date.UTC(1931,9,30,8)},'cairoMuseum');
+ s=act(s,'cm-curator-late');
+ s=resolveRoll(act(s,'cm-staff-persuade',()=>1));
+ s=resolveRoll(act(s,'cm-staff-psychology',()=>1));
+ s=resolveRoll(act(s,'cm-office-dex',()=>1));
+ assert.equal(s.entry,322);
+ assert(s.clues.includes('cairoKehFate'));
+ assert(validateSave(s));
+});
