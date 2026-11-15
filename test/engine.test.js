@@ -538,3 +538,55 @@ test('Fuzira haggling lowers the price charged to carried cash',()=>{
  assert.equal(s.cash,100-price);
  assert(validateSave(s));
 });
+
+function amarna() {
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ return act(act(act(travel(wait(cairo,1),'fuziraMarket'),'fuzira-travel'),'amarna-rental'),'amarna-drive');
+}
+
+test('survey odds use the spent hour and first face, with Luck spending disabled',()=>{
+ let s=act(amarna(),'amarna-pyramid');
+ const surveyed=act(s,'amarna-survey-east');
+ const roll=act(surveyed,'amarna-face-east',()=>25);
+ assert.equal(roll.pending.target,24);
+ assert.equal(luckCost(roll),null);
+ s=resolveRoll(importSave(exportSave(roll)));
+ assert.equal(s.entry,359);
+ assert.throws(()=>act(s,'amarna-face-east'));
+});
+
+function hiddenEntrance() {
+ let s=act(amarna(),'amarna-pyramid');
+ s=act(s,'amarna-survey-east');
+ s=resolveRoll(act(s,'amarna-face-east',()=>1));
+ s=resolveRoll(act(s,'amarna-move-stone',()=>1));
+ return act(s,'amarna-enter-secret');
+}
+
+test('the eastern survey opens the hidden entrance and preserves puzzle discoveries',()=>{
+ const entrance=hiddenEntrance();
+ assert.equal(entrance.entry,382);
+ assert(validateSave(entrance));
+ assert.deepEqual(importSave(exportSave(entrance)),entrance);
+ assert(entrance.visited.includes(397));
+ assert(entrance.visited.includes(379));
+});
+
+test('hidden passages add only discovered map sections and keep in-tomb time across saves',async()=>{
+ const {discoveredSections,pyramidBoard}=await import('../web/amarna-map.js');
+ let s=hiddenEntrance();
+ assert.deepEqual([...discoveredSections(s.visited)],['K']);
+ const before=s.time;
+ s=act(s,'pyramid-descend');
+ assert.equal(s.entry,399);
+ assert.equal(s.time-before,1800000);
+ s=act(s,'pyramid-pit-cross');
+ s=resolveRoll(act(s,'pyramid-pit-jump',()=>1));
+ s=resolveRoll(act(s,'pyramid-rites-sanity',()=>1));
+ s=act(s,'pyramid-stairs-up');
+ assert.equal(s.entry,313);
+ const mapped=discoveredSections(s.visited);
+ assert.deepEqual(mapped,new Set(['K','I']));
+ assert.equal((pyramidBoard(mapped).match(/<img /g)||[]).length,2);
+ assert.deepEqual(importSave(exportSave(s)),s);
+});

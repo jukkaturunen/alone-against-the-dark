@@ -71,9 +71,15 @@ Updated: 14 November 2026.
 - Added the Parthenon encounter and ring, the Kyonas charter, Cairo Police, Fuzira Marketplace, and the two-day road to the first chamber at Tell-el-Amarna.
 - Verified the Parthenon encounter after a browser reload. Automated tests also cover the surviving and fatal routes, charter timing, Fuzira prices, and saving at Tell-el-Amarna.
 
+## v0.10.0
+
+- 329 of 593 reachable entries, up 97 from v0.9.0 (232). This excludes the prepared Harding House entries 68/188 and entry 421, which requires an item not yet obtainable.
+- Added the public tomb chambers, the four exterior surveys, the concealed entrance, and the hidden pyramid's passage network, hazards, and ritual clues.
+- The pyramid map fills with the original tiles as the player reaches sections. Existing dossiers retain their progress. Verified the map with a browser import and checked all puzzle links, 77 automated tests, and the production build.
+
 ## Next step
 
-Expand the Tell-el-Amarna tomb and its puzzle. Continue Cairo’s city and desert branches. The museum theft, delayed mirror pursuit, and remaining routes out of Egypt are pending. Vercel deployment and music remain later steps.
+Follow the expedition lead toward Bremen. Expand the remaining Egypt routes and revisit deferred item and companion interactions. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

@@ -1,5 +1,8 @@
+import { PUZZLE_SCENES, PUZZLE_CLUES, PUZZLE_CHECKS } from './amarna-puzzle.js';
+import { UPPER_SCENES, UPPER_CLUES, UPPER_CHECKS } from './amarna-upper.js';
+import { EXTERIOR_SCENES, EXTERIOR_CHECKS } from './amarna-exterior.js';
 import { CITY_LOCATIONS, CITY_SCENES, CITY_CLUES, CITY_CHECKS } from './cairo-city.js';
-import { ROAD_LOCATIONS, ROAD_SCENES, ROAD_CLUES, ROAD_CHECKS } from './egypt-road.js';
+import { ROAD_LOCATIONS, ROAD_SCENES } from './egypt-road.js';
 import { PAR_LOCATIONS, PAR_SCENES, PAR_CLUES, PAR_CHECKS } from './parthenon.js';
 import { CM_LOCATIONS, CM_SCENES, CM_CLUES, CM_CHECKS } from './cairo-museum.js';
 import { AM_LOCATIONS, AM_SCENES, AM_CLUES, AM_CHECKS } from './athens-museum.js';
@@ -58,7 +61,8 @@ export const CLUES = {
  ...CAFE_CLUES,
  ...AM_CLUES,
  ...CM_CLUES,
- ...ROAD_CLUES,
+ ...UPPER_CLUES,
+ ...PUZZLE_CLUES,
  ...PAR_CLUES,
  ...CITY_CLUES,
  ...EARLY_CLUES,
@@ -82,7 +86,9 @@ export const CHECKS = {
  ...CAFE_CHECKS,
  ...AM_CHECKS,
  ...CM_CHECKS,
- ...ROAD_CHECKS,
+ ...UPPER_CHECKS,
+ ...PUZZLE_CHECKS,
+ ...EXTERIOR_CHECKS,
  ...PAR_CHECKS,
  ...CITY_CHECKS,
  ...COMBAT_CHECKS,
@@ -109,6 +115,9 @@ export const SCENES = {
  ...AM_SCENES,
  ...CM_SCENES,
  ...ROAD_SCENES,
+ ...UPPER_SCENES,
+ ...PUZZLE_SCENES,
+ ...EXTERIOR_SCENES,
  ...PAR_SCENES,
  ...CITY_SCENES,
  ...COMBAT_SCENES,

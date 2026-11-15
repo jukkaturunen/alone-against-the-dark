@@ -7,3 +7,32 @@
 @media(prefers-reduced-motion:no-preference){button{transition:background-color .12s,border-color .12s}}
 
 .clue-image{display:block;width:100%;height:auto;margin:1.5rem auto;border:1px solid var(--line);}
+
+.pyramid-board {
+ position: relative;
+ width: min(100%, 500px);
+ aspect-ratio: 2 / 1.732;
+ margin: 1.25rem auto;
+}
+.pyramid-cell {
+ position: absolute;
+ left: calc(var(--column) * 12.5%);
+ top: calc(var(--row) * 25%);
+ width: 25%;
+ height: 25%;
+ background: #b2ab98;
+ clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.pyramid-cell.down { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.pyramid-cell::before {
+ content: '';
+ position: absolute;
+ inset: 2px;
+ background: #e8e2d4;
+ clip-path: inherit;
+}
+.pyramid-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+.pyramid-label { position: absolute; left: 0; right: 0; top: 61%; text-align: center; font: 700 12px sans-serif; }
+.pyramid-cell.down .pyramid-label { top: 20%; }
+.pyramid-cell.mapped { background: transparent; }
+.pyramid-cell.mapped::before { content: none; }

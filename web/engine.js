@@ -1,6 +1,9 @@
+import { PUZZLE_SCENES, PUZZLE_ENTRY_CLUES, PUZZLE_CHOICES, PUZZLE_FLAGS, PUZZLE_ENDINGS, puzzleChoiceEffect, puzzleCheckEffect, puzzleEnter, puzzleSkillPenalty, validatePuzzle } from './amarna-puzzle.js';
+import { UPPER_SCENES, UPPER_ENTRY_CLUES, UPPER_CHOICES } from './amarna-upper.js';
+import { EXTERIOR_ENTRIES, EXTERIOR_CHOICES, EXTERIOR_CHECKS } from './amarna-exterior.js';
 import { CITY_ENTRIES, CITY_ENTRY_CLUES, CITY_CHOICES, CITY_FLAGS, CITY_ENDINGS, cityOpen, cityChoiceEffect, cityCheckEffect } from './cairo-city.js';
 import { PAR_ENTRIES, PAR_ENTRY_CLUES, PAR_CHOICES, PAR_FLAGS, PAR_LOCKED_ENTRIES, PAR_ENDINGS, PAR_RING } from './parthenon.js';
-import { ROAD_ENTRIES, ROAD_ENTRY_CLUES, ROAD_CHOICES, MARKET_ROAD_ENTRIES } from './egypt-road.js';
+import { ROAD_ENTRIES, ROAD_CHOICES, MARKET_ROAD_ENTRIES } from './egypt-road.js';
 import { CM_ENTRIES, CM_ENTRY_CLUES, CM_CHOICES, CM_FLAGS, cmOpen, cmEntry } from './cairo-museum.js';
 import { AM_ENTRIES, AM_ENTRY_CLUES, AM_CHOICES, AM_FLAGS, amOpen } from './athens-museum.js';
 import { CAFE_ENTRIES, CAFE_ENTRY_CLUES, CAFE_CHOICES, CAFE_FLAGS } from './athens-cafe.js';
@@ -18,7 +21,7 @@ import { NY_TRAVEL_ENTRIES } from './ny-travel.js';
 import { serviceActions, performService } from './arkham-services.js';
 import { CONTACT_LOCATIONS, CONTACT_ENTRIES, CONTACT_ENTRY_CLUES, CONTACT_CHOICES, contactOpen, contactChoiceStatus } from './ny-contacts.js';
 import { NEWS_ENTRIES, NEWS_ENTRY_CLUES, NEWS_CHOICES, NEWS_AVAILABILITY_ENTRY } from './ny-news.js';
-const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES, ...CONTACT_ENTRY_CLUES, ...NEWS_ENTRY_CLUES,...EARLY_ENTRY_CLUES,...LATE_ENTRY_CLUES,...EGYPT_ENTRY_CLUES,...CASE_ENTRY_CLUES,...CAFE_ENTRY_CLUES,...AM_ENTRY_CLUES,...CM_ENTRY_CLUES,...PAR_ENTRY_CLUES,...ROAD_ENTRY_CLUES,...CITY_ENTRY_CLUES};
+const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES, ...CONTACT_ENTRY_CLUES, ...NEWS_ENTRY_CLUES,...EARLY_ENTRY_CLUES,...LATE_ENTRY_CLUES,...EGYPT_ENTRY_CLUES,...CASE_ENTRY_CLUES,...CAFE_ENTRY_CLUES,...AM_ENTRY_CLUES,...CM_ENTRY_CLUES,...PAR_ENTRY_CLUES,...CITY_ENTRY_CLUES,...UPPER_ENTRY_CLUES,...PUZZLE_ENTRY_CLUES};
 import { LATER_CHOICES } from './arkham-later.js';
 import { readLegacySave } from './legacy-save.js';
 import { HOUR, HALF_HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
@@ -30,6 +33,7 @@ const CHARACTERISTICS = { STR:70, CON:50, SIZ:45, DEX:60, INT:70, APP:55, POW:55
 const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES,...NY_TRAVEL_ENTRIES,...CONTACT_ENTRIES,...NEWS_ENTRIES,
  liner:[187,...SHIP_DAYS,...Object.keys({...EARLY_SCENES,...LATE_SCENES,...COMBAT_SCENES}).map(id=>/^\d+$/.test(id)?Number(id):id)],
  athensHarbor:[173],alexandriaHarbor:[195],...MED_ENTRIES,...EGYPT_ENTRIES,...CASE_ENTRIES,...CAFE_ENTRIES,...AM_ENTRIES,...CM_ENTRIES,...PAR_ENTRIES,...ROAD_ENTRIES,...CITY_ENTRIES,
+ amarna:[...new Set([...ROAD_ENTRIES.amarna,...EXTERIOR_ENTRIES,...Object.keys({...UPPER_SCENES,...PUZZLE_SCENES}).map(id=>Number(id)||id)])],
  fuziraMarket:[...CITY_ENTRIES.fuziraMarket,...MARKET_ROAD_ENTRIES]
 };
 export function region(s) {
@@ -51,7 +55,7 @@ export function skill(s,name) {
  if(name==='Luck') return s.luck;
  if(name==='Sanity') return s.sanity;
  if(name==='Cthulhu Mythos') return s.mythos;
- if(Object.hasOwn(CHARACTERISTICS,name)) return CHARACTERISTICS[name];
+ if(Object.hasOwn(CHARACTERISTICS,name)) return Math.max(0,CHARACTERISTICS[name]-puzzleSkillPenalty(s,name));
  return (BASE_SKILLS[name]||0)+(s.allocation[name]||0);
 }
 export function successLevel(roll,base,required=base) {
@@ -73,6 +77,7 @@ function unlock(s,id) {
  if(!s.clues.includes(id)) { s.clues.push(id); log(s,`Collected: ${CLUES[id].title}.`); }
 }
 function go(s,entry) {
+ const previousEntry=s.entry;
  if(s.voyage&&entry===187&&s.entry!==187) {
   delete s.voyage.struggle;
   finishActivity(s);
@@ -85,7 +90,7 @@ function go(s,entry) {
   } else if(redirect) entry=redirect.target??redirect;
  }
  s.entry=entry;
- if(PAR_ENDINGS.has(entry)) {
+ if(PAR_ENDINGS.has(entry)||puzzleEnds(entry)) {
   s.phase='ending';
   s.hp=0;
  }
@@ -103,6 +108,10 @@ function go(s,entry) {
  if([23,45,89].includes(entry)) s.flags.hardingRejected=true;
  if(entry===28) delete s.flags.doorOpen;
  if(entry===7) delete s.flags.windowQuiet;
+ if(s.location==='amarna') puzzleEnter(s,previousEntry,{go,rollDie,log});
+}
+function puzzleEnds(entry) {
+ return PUZZLE_ENDINGS instanceof Set?PUZZLE_ENDINGS.has(entry):PUZZLE_ENDINGS.includes(entry);
 }
 function endVoyage(s) {
  s.phase='ending';
@@ -180,7 +189,7 @@ export function isOpen(location,time) {
 }
 export function canLeaveLocation(s) {
  if(s.pending||s.phase!=='playing'||s.flags.caughtOnEntry||[12,13,79,100,112,147,172,197,219,222,227,240,241,375,'fuzira-mirror-hound'].includes(s.entry)) return false;
- if(s.location==='liner'||PAR_LOCKED_ENTRIES.has(s.entry)) return false;
+ if(s.location==='liner'||PAR_LOCKED_ENTRIES.has(s.entry)||s.location==='amarna'&&Object.hasOwn(PUZZLE_SCENES,s.entry)) return false;
  if(s.location!=='harding') return true;
  return [113,23,45,89,90,2,51].includes(s.entry)||(s.entry===7&&s.flags.windowQuiet===true);
 }
@@ -188,6 +197,9 @@ function difficultyTarget(base,difficulty) {
  if(difficulty==='Extreme') return Math.floor(base/5);
  if(difficulty==='Hard') return Math.floor(base/2);
  return base;
+}
+function checkSucceeded(r,roll,target,level) {
+ return level!=='Fumble'&&(roll<=target||roll===1&&!r.strictChance);
 }
 function checkBase(s,r) { return Math.min(99,skill(s,r.skill)+(r.skillBonus?.(s)||0)); }
 function checkAvailable(s,id) {
@@ -308,7 +320,7 @@ export function actions(s) {
  if(sailing&&s.entry===LOCATIONS[s.location].entry) add('med-steamer',`Take the steamer to ${LOCATIONS[sailing.to].name}`,
   `${date(sailing.departure)} · 3 PM · 24 hours`,dayStart(s.time)!==dayStart(sailing.departure));
  if(s.entry===173) add('piraeus-cab','Take a cab to the Bureau of Investigation','Arrive in one hour',!isOpen('athensBureau',s.time+HOUR));
- for(const choice of [...(CASE_CHOICES[s.entry]||[]),...(CAFE_CHOICES[s.entry]||[]),...(AM_CHOICES[s.entry]||[]),...(CM_CHOICES[s.entry]||[]),...(PAR_CHOICES[s.entry]||[]),...(ROAD_CHOICES[s.entry]||[]),...(CITY_CHOICES[s.entry]||[])]) {
+ for(const choice of fieldChoices(s.entry)) {
   if(caseChoiceAvailable(s,choice)) add(choice.id,choice.label,choice.detail);
  }
  for(const choice of EGYPT_CHOICES[s.entry]||[]) {
@@ -364,16 +376,24 @@ function startCheck(s,id,rollFn) {
  const r=CHECKS[id],base=checkBase(s,r),target=difficultyTarget(base,r.difficulty);
  let roll=rollFn();
  if(!Number.isInteger(roll)||roll<1||roll>100) throw new Error('Invalid dice result.');
- if(r.bonusDie) {
-  const alternative=((rollDie(10)-1)*10+roll%10)||100;
-  log(s,`Bonus die: kept the lower of ${roll} and ${alternative}.`);
-  roll=Math.min(roll,alternative);
+ const hasBonus=typeof r.bonusDie==='function'?r.bonusDie(s):r.bonusDie;
+ const extraDice=(r.penaltyDice||0)-(hasBonus?1:0);
+ if(extraDice) {
+  const units=roll%10;
+  const results=[roll];
+  for(let i=0;i<Math.abs(extraDice);i++) results.push(((rollDie(10)-1)*10+units)||100);
+  roll=(extraDice>0?Math.max:Math.min)(...results);
+  log(s,`${extraDice>0?'Penalty':'Bonus'} dice: kept ${roll} from ${results.join(', ')}.`);
  }
  const duration=r.duration??1;
  s.attempts[id]=(s.attempts[id]||0)+1;
  advance(s,duration);
  s.pending={id,roll,target,base,skill:r.skill,difficulty:r.difficulty||'Regular',duration,level:successLevel(roll,base,target)};
  log(s,`${r.skill}: rolled ${roll} against ${target} (${s.pending.level}; ${s.pending.difficulty} difficulty).`);
+}
+const fieldChoiceTables=[CASE_CHOICES,CAFE_CHOICES,AM_CHOICES,CM_CHOICES,PAR_CHOICES,ROAD_CHOICES,CITY_CHOICES,EXTERIOR_CHOICES,UPPER_CHOICES,PUZZLE_CHOICES];
+function fieldChoices(entry) {
+ return fieldChoiceTables.flatMap(table=>table[entry]||[]);
 }
 function linerChoices(entry) {
  return EARLY_CHOICES[entry]||LATE_CHOICES[entry]||COMBAT_CHOICES[entry]||[];
@@ -477,10 +497,20 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
   return s;
  }
  if(id==='ny-sun-open') {go(s,86);return s;}
- const choices=s.location==='liner'?linerChoices(s.entry):NYC_CHOICES[s.entry]||LATER_CHOICES[s.entry]||CONTACT_CHOICES[s.entry]||NEWS_CHOICES[s.entry]||EGYPT_CHOICES[s.entry]||CASE_CHOICES[s.entry]||CAFE_CHOICES[s.entry]||AM_CHOICES[s.entry]||CM_CHOICES[s.entry]||PAR_CHOICES[s.entry]||ROAD_CHOICES[s.entry]||CITY_CHOICES[s.entry];
+ const choices=s.location==='liner'?linerChoices(s.entry):[
+  ...fieldChoices(s.entry),
+  ...(NYC_CHOICES[s.entry]||LATER_CHOICES[s.entry]||CONTACT_CHOICES[s.entry]||NEWS_CHOICES[s.entry]||EGYPT_CHOICES[s.entry]||[])
+ ];
  const choice=(choices||[]).find(choice=>choice.id===id);
  if(choice?.topic) s.nyTopics=(s.nyTopics||0)+1;
  if(choice) {
+  if(choice.survey&&s.amarnaSurvey?.day!==dayStart(s.time)) s.amarnaSurvey={day:dayStart(s.time),first:choice.target};
+  if(choice.sleep) {
+   s.sleptNight=nightStart(s.time);
+   s.sleep=Math.max(sleepHours(s),(dayStart(s.time)+DAY+6*HOUR-s.time)/HOUR);
+   s.sleepDebt=0;
+   advance(s,s.sleep,true);
+  }
   if(choice.journey) advanceJourney(s,choice.journey);
   if(id==='parthenon-rest') {
    advance(s,1);
@@ -494,6 +524,7 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
   if(choice.clearFlag) delete s.flags[choice.clearFlag];
   if(choice.flag) s.flags[choice.flag]=true;
   if(choice.destination) s.location=choice.destination;
+  if(puzzleChoiceEffect(s,choice.effect,{rollDie,go,log,skill})) return s;
   if(cityChoiceEffect(s,choice.effect,{rollDie,go,log,skill})) return s;
   if(shipCombatEffect(s,choice.effect,{rollDie,go,log,endVoyage,finishActivity})) return s;
   if(choice.cash) changeCash(s,choice.cash);
@@ -532,7 +563,7 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
 }
 export function luckCost(s) {
  const p=s.pending;
- if(!p||['Luck','Sanity'].includes(p.skill)||p.level==='Fumble'||p.roll<=p.target||p.roll===1) return null;
+ if(!p||CHECKS[p.id].noLuck||['Luck','Sanity'].includes(p.skill)||p.level==='Fumble'||p.roll<=p.target||p.roll===1) return null;
  // A zero-valued skill cannot be bought up into a critical: criticals cannot be purchased.
  const cost=p.roll-p.target;
  return p.target>1&&cost<=s.luck?cost:null;
@@ -543,7 +574,7 @@ export function resolveRoll(original,spend=false) {
  const r=CHECKS[p.id],cost=spend?luckCost(s):0;
  if(spend&&cost===null) throw new Error('Luck cannot alter this roll.');
  if(spend) {s.luck-=cost;log(s,`Spent ${cost} Luck. ${s.luck} Luck remains.`);}
- const adjusted=p.roll-cost,level=successLevel(adjusted,p.base,p.target),success=level!=='Fumble'&&(adjusted===1||adjusted<=p.target);
+ const adjusted=p.roll-cost,level=successLevel(adjusted,p.base,p.target),success=checkSucceeded(r,adjusted,p.target,level);
  if(success&&r.successCashDice) changeCash(s,rollTotal(r.successCashDice));
  if(level==='Fumble'&&r.fumbleCashDice) changeCash(s,-rollTotal(r.fumbleCashDice));
  const extraHours=success?r.successDuration:r.failureDuration;
@@ -552,6 +583,7 @@ export function resolveRoll(original,spend=false) {
   s.hp=Math.max(0,s.hp-r.failureDamage);
   log(s,`Lost ${r.failureDamage} health while recovering.`);
  }
+ if(!success&&r.clearOnFailure) delete s.flags[r.clearOnFailure];
  if(success&&r.clue) unlock(s,r.clue);
  let target=success?r.successEntry:r.failureEntry;
  if(s.location==='liner') {
@@ -564,7 +596,7 @@ export function resolveRoll(original,spend=false) {
   }
  }
  const effect=success?r.successEffect:r.failureEffect;
- const handled=cityCheckEffect(s,effect,{rollDie,go,log,level})||egyptCombatEffect(s,effect,{rollDie,go,log})||shipCombatEffect(s,effect,{rollDie,go,log,endVoyage,finishActivity,level});
+ const handled=puzzleCheckEffect(s,effect,{rollDie,go,log,level})||cityCheckEffect(s,effect,{rollDie,go,log,level})||egyptCombatEffect(s,effect,{rollDie,go,log})||shipCombatEffect(s,effect,{rollDie,go,log,endVoyage,finishActivity,level});
  if(!handled&&target===187&&(success?r.successAdvanceDay:r.failureAdvanceDay)) {
   finishActivity(s,true);
   s.entry=187;
@@ -610,8 +642,8 @@ function validRoll(p,s,pending) {
  const required=difficultyTarget(p.base,r.difficulty);
  if(p.target!==required) return false;
  if(pending) return combatActionsAvailable(s,r)&&egyptCheckAvailable(s,p.id)&&s.entry===r.entry&&s.phase==='playing'&&p.base===checkBase(s,r)&&p.level===successLevel(p.roll,p.base,p.target);
- if(!num(p.adjusted,1,100)||!num(p.spent,0,50)||p.adjusted!==p.roll-p.spent||p.level!==successLevel(p.adjusted,p.base,p.target)||p.success!==(p.level!=='Fumble'&&(p.adjusted===1||p.adjusted<=p.target))) return false;
- if(p.spent&&(['Luck','Sanity'].includes(p.skill)||successLevel(p.roll,p.base,p.target)==='Fumble'||p.adjusted===1)) return false;
+ if(!num(p.adjusted,1,100)||!num(p.spent,0,50)||p.adjusted!==p.roll-p.spent||p.level!==successLevel(p.adjusted,p.base,p.target)||p.success!==checkSucceeded(r,p.adjusted,p.target,p.level)) return false;
+ if(p.spent&&(r.noLuck||['Luck','Sanity'].includes(p.skill)||successLevel(p.roll,p.base,p.target)==='Fumble'||p.adjusted===1)) return false;
  return p.clue===null||(Object.hasOwn(CLUES,p.clue)&&s.clues.includes(p.clue));
 }
 export function validateSave(s) {
@@ -619,7 +651,7 @@ export function validateSave(s) {
  if(!num(s.time,START,Date.UTC(2100,0,1))||s.time%HALF_HOUR!==0||!num(s.hp,0,9)||!num(s.mythos,0,4)||!num(s.sanity,0,99-s.mythos)||!num(s.luck,0,50)||!num(s.bank,0,2200)||!num(s.cash,0,100000)||!num(s.sleep,0,2000000)||!num(s.sleepDebt,0,2000000)||!num(s.mealDebt,0,2)||typeof s.fastingToday!=='boolean'||(s.sleptNight!==null&&(!num(s.sleptNight,dayStart(START),s.time)||s.sleptNight%DAY!==0))) return false;
  if(!Object.hasOwn(LOCATIONS,s.location)||!['playing','complete','ending'].includes(s.phase)||!Array.isArray(s.clues)||s.clues.length>Object.keys(CLUES).length||!s.clues.every(c=>Object.hasOwn(CLUES,c))||new Set(s.clues).size!==s.clues.length) return false;
  if(!ENTRIES[s.location]?.includes(s.entry)||!plain(s.flags)) return false;
- const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed','hospitalTreated','athensHotelStayed',...CASE_FLAGS,...CAFE_FLAGS,...AM_FLAGS,...CM_FLAGS,...PAR_FLAGS,...CITY_FLAGS];
+ const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed','hospitalTreated','athensHotelStayed',...CASE_FLAGS,...CAFE_FLAGS,...AM_FLAGS,...CM_FLAGS,...PAR_FLAGS,...CITY_FLAGS,...PUZZLE_FLAGS];
  if(Object.entries(s.flags).some(([k,v])=>k==='endReason'?v!=='boston':!boolFlags.includes(k)||typeof v!=='boolean')) return false;
  if(s.flags.hospitalTreated&&s.entry!==585) return false;
  if(s.nyTopics!==undefined&&(s.location!=='nyLibrary'||!num(s.nyTopics,0,2))) return false;
@@ -632,10 +664,12 @@ export function validateSave(s) {
   if(!plain(v)||!num(v.departure,START,s.time)||v.departure%HOUR!==0||hourOf(v.departure)!==12||new Date(v.departure).getUTCDay()!==6||!num(v.day,1,9)||!num(v.slot,0,v.day===9?0:2)||((s.entry==='ship-cinema-grabbed')?!num(v.struggle,1,6):v.struggle!==undefined)||s.time!==dayStart(v.departure)+v.day*DAY+[8,13,20][v.slot]*HOUR) return false;
  } else if(s.voyage!==undefined) return false;
  if(!validateShipCombat(s)||s.shipCombat&&s.location!=='liner') return false;
+ if(!validatePuzzle(s)) return false;
+ if(s.amarnaSurvey!==undefined&&(!plain(s.amarnaSurvey)||!num(s.amarnaSurvey.day,dayStart(START),dayStart(s.time))||s.amarnaSurvey.day%DAY!==0||![317,359,337,561].includes(s.amarnaSurvey.first))) return false;
  if(s.cityStallDamage!==undefined&&(s.entry!==375||!num(s.cityStallDamage,1,5))) return false;
  if(s.alexandriaDamage!==undefined&&(s.entry!==222||!num(s.alexandriaDamage,1,5))) return false;
- if(s.phase==='ending'&&![574,'alexandria-ending','hawkes-ending'].includes(s.entry)&&s.location!=='liner'&&!PAR_ENDINGS.has(s.entry)&&!CITY_ENDINGS.includes(s.entry)) return false;
- if(PAR_ENDINGS.has(s.entry)&&s.phase!=='ending') return false;
+ if(s.phase==='ending'&&![574,'alexandria-ending','hawkes-ending'].includes(s.entry)&&s.location!=='liner'&&!PAR_ENDINGS.has(s.entry)&&!CITY_ENDINGS.includes(s.entry)&&!puzzleEnds(s.entry)) return false;
+ if((PAR_ENDINGS.has(s.entry)||puzzleEnds(s.entry))&&s.phase!=='ending') return false;
  if(!str(s.notes,20000)||!Array.isArray(s.inventory)||s.inventory.length>100||!s.inventory.every(i=>str(i,200))||!Array.isArray(s.log)||s.log.length>15000||!s.log.every(l=>plain(l)&&num(l.time,START,s.time)&&str(l.text,500))) return false;
  if(!Array.isArray(s.meals)||s.meals.length>15000||!s.meals.every((t,i)=>num(t,MORNING,s.time)&&t%HALF_HOUR===0&&(!i||t-s.meals[i-1]>=6*HOUR))) return false;
  if(mealCount(s)>mealTarget(s)) return false;

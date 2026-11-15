@@ -118,3 +118,10 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - The first Parthenon visit uses the printed sunset encounter regardless of arrival hour. Breaking the second grapple uses an Extreme STR check to represent the combined opposition. The survivor’s cab and rest advance to the next morning, grant the warning and ring, and leave later visits quiet.
 - The Kyonas takes 24 hours to prepare and 48 hours to cross. The self-drive route to Tell-el-Amarna takes 48 hours each way. These actions account for provisions and overnight stops together. The driver-guide route and the tomb beyond its first chamber are pending.
 - Fuzira’s outfitters use sample prices with the printed 200% markup and a successful Hard bargain returns them to normal. These purchases debit carried cash. The dagger stall represents the three-hour prize attempt with one roll. Its piastres are not converted to dollars. The mirror encounter resolves immediate Sanity loss; its later pursuit and hired bearers are pending.
+
+
+## The pyramid at Tell-el-Amarna (v0.10.0)
+
+- Exterior searches take one hour. The first surveyed face of the day, remaining daylight, and a diagram found outside Egypt affect search odds. The percentile roll must fall below the resulting chance. It does not accept Luck spending.
+- The public tomb has its own plan. The hidden map uses the supplied handout tiles and places them automatically as the corresponding sections are discovered. Map progress is derived from saved visits. Ordinary passage movement uses half-hour steps where the source gives no timing.
+- The chamber switches from the ritual to its aftermath on November 21. Some item-dependent routes require equipment from a future branch. The prepared dynamite-only entry 421 is excluded from the reachable-entry count.
