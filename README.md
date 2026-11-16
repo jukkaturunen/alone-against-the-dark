@@ -26,6 +26,8 @@ In Egypt, hire a driver to Tell-el-Amarna or take the Quattarra caravan from Fuz
 
 Take the noon train from Athens to Cairo, then consult the departments and library at Al-Azhar University. The student translator and Professor Jahark can assist with selected checks.
 
+The scheduled Cairo flight and the Fokker are available at Athens Airport. You can also try different lodgings in Athens and Cairo and follow the remaining investigation routes aboard The Dark Sea.
+
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 
 ## Checks and build

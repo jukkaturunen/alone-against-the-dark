@@ -555,6 +555,66 @@ test('the Athens–Cairo train takes three days and the private suite has a save
  assert.equal(delayed.time,common.time+24*3600000);
 });
 
+test('the scheduled Athens flight can expose the attacker and the Fokker can land in the desert',()=>{
+ const airport=travel(landfall('athens'),'athensAirport');
+ let s=choose(airport,'athens-flight-board','athens-flight-stay');
+ s=expeditionRoll(s,'athens-flight-spot',100);
+ s=expeditionRoll(s,'athens-flight-listen');
+ assert.equal(s.entry,55);
+ s=choose(s,'athens-flight-after-scream','athens-flight-stay-seat','athens-flight-see-cockpit');
+ s=expeditionRoll(s,'athens-flight-sanity');
+ s=expeditionRoll(s,'athens-flight-history');
+ assert.equal(s.entry,71);
+ assert(s.clues.includes('athensFlightMummy'));
+ assert.deepEqual(importSave(exportSave(s)),s);
+ const trained={...airport,allocation:{...airport.allocation,'Library Use':16,'Pilot (Aircraft)':4}};
+ s=choose(trained,'athens-fokker-inspect','athens-fokker-take');
+ s=expeditionRoll(s,'athens-fokker-pilot');
+ assert.equal(expeditionRoll(s,'athens-fokker-navigate').entry,196);
+ const desert=expeditionRoll(s,'athens-fokker-navigate',100);
+ assert.equal(desert.entry,94);
+ assert.equal(desert.location,'quattarra');
+ assert.deepEqual(importSave(exportSave(desert)),desert);
+});
+
+test('the Athens hotel can use a fire escape or the same combat rules as the liner',t=>{
+ t.mock.method(globalThis.crypto,'getRandomValues',values=>{values.fill(98);return values;});
+ const room=act(travel(landfall('athens'),'athensCheapHotel'),'hotel-take-cheap-room');
+ const corridor=expeditionRoll(room,'hotel-spot-watchers');
+ const alerted=expeditionRoll(corridor,'hotel-listen-door');
+ assert.equal(act(alerted,'hotel-check-window').entry,'hotel-escape');
+ let attacked=expeditionRoll(corridor,'hotel-listen-door',100);
+ assert.equal(attacked.entry,185);
+ attacked=expeditionRoll(attacked,'ship-evade-185');
+ attacked=expeditionRoll(importSave(exportSave(attacked)),'ship-run-185');
+ attacked=expeditionRoll(attacked,'ship-hotel-sanity');
+ const escaped=expeditionRoll(attacked,'ship-hotel-dodge');
+ assert.equal(escaped.entry,'hotel-escape');
+ assert.deepEqual(importSave(exportSave(escaped)),escaped);
+});
+
+test('the Fuzira mirror schedules a saved pursuit and Nodens can drive the hound off',t=>{
+ t.mock.method(globalThis.crypto,'getRandomValues',values=>{values.fill(0);return values;});
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ let s=act(travel(wait(cairo,1),'fuziraMarket'),'fuzira-pottery');
+ s=expeditionRoll(s,'fuzira-spot-mirror');
+ s=expeditionRoll(s,'fuzira-int-mirror',100);
+ s=expeditionRoll(s,'fuzira-mirror-sanity');
+ assert.equal(s.hound.due-s.time,48*3600000);
+ s=wait(s,48);
+ assert.deepEqual(actions(s).map(a=>a.id),['hound-face-pursuer']);
+ const attacked=act(s,'hound-face-pursuer');
+ assert.equal(attacked.entry,306);
+ assert.deepEqual(importSave(exportSave(attacked)),attacked);
+ const lastChance=expeditionRoll(attacked,'hound-sanity');
+ assert.equal(act(lastChance,'hound-face-it').phase,'ending');
+ const protectedState=act({...lastChance,inventory:[...lastChance.inventory,'Amulet of Nodens']},'hound-use-nodens');
+ assert.equal(protectedState.entry,134);
+ assert.equal(protectedState.hound,undefined);
+ assert(!protectedState.inventory.includes('Amulet of Nodens'));
+ assert.deepEqual(importSave(exportSave(protectedState)),protectedState);
+});
+
 test('Cairo museum staff investigation unlocks Keh’s fate after the cutoff',()=>{
  const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
  let s=travel({...cairo,time:Date.UTC(1931,9,30,8)},'cairoMuseum');
@@ -1017,7 +1077,14 @@ test('transport makes the previously unreachable pyramid dynamite branch playabl
  ship=expeditionRoll(ship,'dark-sea-exit-cabin');
  let s=oldOneTravel(meetOldOne(expeditionCamp(ship)),'depot');
  s=act(travel(wait(s,8),'store'),'buy-rope');
- s=hiddenEntrance(oldOneTravel(wait(s,1),'amarna'));
+ const village=oldOneTravel(wait(s,1),'amarna');
+ const search=choose(village,'amarna-pyramid','amarna-survey-east');
+ const stone=expeditionRoll(search,'amarna-face-east');
+ const blasted=act(stone,'amarna-blast-opening');
+ assert.equal(blasted.entry,331);
+ assert(!blasted.inventory.includes('Dynamite'));
+ assert.equal(act(importSave(exportSave(blasted)),'amarna-enter-blasted-opening').entry,379);
+ s=hiddenEntrance(village);
  s=choose(s,'pyramid-descend','pyramid-pit-cross');
  s=expeditionRoll(s,'pyramid-pit-jump');
  s=expeditionRoll(s,'pyramid-rites-sanity');

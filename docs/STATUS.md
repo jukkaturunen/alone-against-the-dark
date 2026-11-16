@@ -116,9 +116,15 @@ Updated: 16 November 2026.
 - The noon Athens–Cairo train reaches Cairo in three days, with a shared carriage or the private-suite encounter. The window escape adds a day.
 - Schema 11 preserves assisted rolls. Verified a pending student translation in the browser after reload. The automated suite also covers staged library research, recruitment, the map bonus, and the private-suite train routes.
 
+## v0.17.0
+
+- 592 of 593 numbered entries are reachable, up 39 from v0.16.0 (553). Entry 66 is the book's wrong-number marker. The count includes discoveries and automatic transitions.
+- Opened the scheduled Cairo flight, the Fokker, the remaining Dark Sea branches, and Athens and Cairo lodgings. Added the Fuzira hound's delayed arrival, the pyramid creature reference and dynamite entrance, and the Harding House bookmark and drawing.
+- Schema 12 preserves older dossiers. Verified a saved roll aboard the morning flight after importing an earlier airport dossier. The automated suite covers the cockpit lead, desert landing, hotel escape and combat, and the Hound's timing and escape.
+
 ## Next step
 
-Open the remaining Athens flights and alternate Dark Sea branches. Optional handoffs during temporary insanity and more Old One combat interventions remain pending. Vercel deployment and music remain later steps.
+Play through the main routes and audit the remaining rule differences. Optional handoffs during temporary insanity, companion sacrifice, and more Old One combat interventions remain pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

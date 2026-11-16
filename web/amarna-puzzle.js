@@ -145,6 +145,8 @@ export const PUZZLE_SCENES = {
 
 const clue = (title,entry,text) => ({title,type:'Pyramid discovery',source:PUZZLE_SCENES[entry].source,text});
 export const PUZZLE_CLUES = {
+ amarnaGhasts:{title:'The ghasts in the pyramid',type:'Creature reference',source:'Entry 304 · p. 54',
+  text:'The creatures move with long, bounding steps and make a hoarse, coughing sound. Their claws and teeth strike fast. The star ring offers no protection against them.'},
  amarnaMummification:clue('Chemicals at the hidden entrance',377,'The unusual odor in the corridor is from chemicals used for mummification.'),
  amarnaPyramidTraffic:clue('Tracks in the hidden pyramid',349,'The sand beside the steps in section K has been disturbed.'),
  amarnaAtenRites:clue('The One God of Gods',345,'The inscription welcomes the True Servants of Aten to the secret rites of the One God of Gods.'),

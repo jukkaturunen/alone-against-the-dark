@@ -1,4 +1,5 @@
 import { startingHealth } from './investigators.js';
+import { HOTEL_COWL, HOTEL_ESCAPE, HOTEL_ENDING } from './hotels.js';
 
 const library = 155;
 const cowl = 1201;
@@ -11,7 +12,7 @@ const attacks = {
  knife:{skill:'Fighting (Brawl)',label:'Use your hunting knife',item:'Hunting knife',sides:6,extra:0},
  revolver:{skill:'Firearms (Handgun)',label:'Fire your revolver',item:'Revolver',sides:10,extra:0}
 };
-const encounters = {10:5,106:3,[library]:8};
+const encounters = {10:5,106:3,[library]:8,185:8};
 
 function scene(title,eyebrow,source,...paragraphs) {
  return {title,eyebrow,source,paragraphs,adapted:true};
@@ -45,7 +46,7 @@ function combatChecks(entry) {
   check(`evade-${entry}`,entry,'Dodge','Evade the dagger','combat-evade','combat-evade',stage('defend')),
   check(`run-${entry}`,entry,'Dodge','Slip past the attacker','combat-escape','combat-defend',stage('turn')),
   ...attackChecks.map(([weapon,data])=>check(`${weapon}-${entry}`,entry,data.skill,data.label,
-   `combat-hit-${weapon}`,'combat-defend',{combatStage:'turn',combatWeapon:weapon,bonusDie:entry===library&&weapon==='revolver'})),
+   `combat-hit-${weapon}`,'combat-defend',{combatStage:'turn',combatWeapon:weapon,bonusDie:[library,185].includes(entry)&&weapon==='revolver'})),
   ...attackChecks.filter(([weapon])=>weapon!=='revolver').map(([weapon,data])=>check(`counter-${weapon}-${entry}`,entry,
    data.skill,weapon==='knife'?'Parry with your hunting knife':'Fight back with your fists',
    `combat-counter-${weapon}`,`combat-counter-${weapon}`,{combatStage:'defend',combatWeapon:weapon}))
@@ -53,9 +54,12 @@ function combatChecks(entry) {
 }
 
 export const COMBAT_CHECKS = Object.fromEntries([
- ...[10,106,library].flatMap(combatChecks),
+ ...[10,106,library,185].flatMap(combatChecks),
  check('library-sanity',cowl,'Sanity','Steady yourself','combat-sanity-pass','combat-sanity-loss',{combatStage:'sanity'}),
  check('library-rescue',cowl,'Luck','Look for a way out','combat-rescue','combat-lost',{combatStage:'rescue'}),
+ check('hotel-sanity',HOTEL_COWL,'Sanity','Steady yourself','combat-sanity-pass','combat-sanity-loss',{combatStage:'sanity'}),
+ check('hotel-dodge',HOTEL_COWL,'Dodge','Slip around the figure','combat-hotel-escape','combat-lost',{combatStage:'rescue'}),
+ check('hotel-barge-past',HOTEL_COWL,'Fighting (Brawl)','Barge past the figure','combat-hotel-escape','combat-lost',{combatStage:'rescue'}),
  check('infirmary-treatment',infirmary,'Luck','Receive treatment','combat-care-good','combat-care-poor',{combatStage:'admitted'})
 ]);
 
@@ -79,8 +83,9 @@ function hasWeapon(s,weapon) {
 function currentStage(s) {
  if (s.shipCombat) return s.shipCombat.stage;
  if (s.entry===106) return 'turn';
- if (s.entry===10||s.entry===library) return hasWeapon(s,'knife')||hasWeapon(s,'revolver') ? 'draw' : 'defend';
- if (s.entry===cowl) return 'sanity';
+ if (s.entry===185&&s.flags.hotelReady) return 'turn';
+ if ([10,library,185].includes(s.entry)) return hasWeapon(s,'knife')||hasWeapon(s,'revolver') ? 'draw' : 'defend';
+ if ([cowl,HOTEL_COWL].includes(s.entry)) return 'sanity';
 }
 
 export function combatActionsAvailable(s,item) {
@@ -91,12 +96,16 @@ export function combatActionsAvailable(s,item) {
  return !item.combatStage||item.combatStage===currentStage(s);
 }
 
+export function receivingShipTreatment(s) {
+ return s.location==='liner'&&s.entry===infirmary;
+}
+
 export function validateShipCombat(s) {
  if (!s.shipCombat) return s.shipCombat===undefined && (s.entry!==infirmary);
  const {stage,damage,ready}=s.shipCombat;
  if (Object.keys(s.shipCombat).length!==3||!Number.isInteger(damage)||damage<0||typeof ready!=='boolean') return false;
  if (s.entry===infirmary) return damage===0&&['admitted','treated'].includes(stage);
- if (s.entry===cowl) return damage===0&&stage==='rescue';
+ if ([cowl,HOTEL_COWL].includes(s.entry)) return damage===0&&stage==='rescue';
  return Object.hasOwn(encounters,s.entry)&&damage<encounters[s.entry]&&['turn','defend'].includes(stage);
 }
 
@@ -106,11 +115,12 @@ function beginStage(s,stage,damage=0,ready=false) {
 
 function finishFight(s,{go}) {
  delete s.shipCombat;
- go(s,s.entry===library ? cowl : aftermath);
+ go(s,s.entry===185 ? HOTEL_COWL : s.entry===library ? cowl : aftermath);
 }
 
 function endFight(s,{go,endVoyage},line) {
  delete s.shipCombat;
+ if([185,HOTEL_COWL].includes(s.entry)) {go(s,HOTEL_ENDING);return;}
  go(s,ending);
  endVoyage(s,line);
 }
@@ -178,6 +188,7 @@ export function shipCombatEffect(s,effect,tools) {
  }
  case 'combat-sanity-pass': beginStage(s,'rescue'); break;
  case 'combat-rescue': delete s.shipCombat; go(s,139); break;
+ case 'combat-hotel-escape': go(s,HOTEL_ESCAPE); break;
  case 'combat-lost': endFight(s,tools,'The hooded figure catches you before you can escape.'); break;
  case 'combat-admit': beginStage(s,'admitted'); go(s,infirmary); break;
  case 'combat-care-good': treatment(s,tools,2); break;

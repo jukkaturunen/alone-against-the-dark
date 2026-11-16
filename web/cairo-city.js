@@ -242,12 +242,13 @@ function leaveTheStall(s,go,log) {
  go(s,stallEscape);
 }
 
-export function cityCheckEffect(s,effect,{rollDie,go,log}) {
+export function cityCheckEffect(s,effect,{rollDie,go,log,scheduleHound}) {
  if(effect==='fuzira-mirror-shaken'||effect==='fuzira-mirror-terrified') {
   const damage = rollDie(effect==='fuzira-mirror-shaken'?3:20);
   const loss = Math.min(s.sanity,damage);
   s.sanity -= loss;
   log(s,`The creature in the glass costs you ${loss} Sanity.`);
+  if(s.sanity>0) scheduleHound(s,{rollDie,log});
   go(s,134);
   return true;
  }

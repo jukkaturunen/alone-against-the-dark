@@ -9,6 +9,7 @@ const scene=(title,eyebrow,entry,page,...paragraphs)=>({
 export const EXTERIOR_SCENES = {
  344:scene('Nothing more on this face',pyramid,344,58,'You search the stonework and find no opening.'),
  397:scene('The stone with a hairline crack',pyramid,397,64,'One stone shifts slightly under pressure. You have found a concealed opening.'),
+ 331:scene('The stone gives way',pyramid,331,56,'The blast opens a passage into the pyramid. Any companions with you leave.'),
  379:scene('The concealed entrance opens',pyramid,379,62,'The stone gives way. A dark corridor leads down into the pyramid.'),
  319:scene('A night in the open',village,319,55,'The desert is bitterly cold after dark. You survive the night and can return to the village in the morning.'),
  447:scene('A room at the inn',village,447,70,'You wake groggy and disoriented. Cold air rushes around you. When you open your eyes, you can see only darkness.')
@@ -34,6 +35,7 @@ export const EXTERIOR_CHOICES = {
  })),
  344:[toPyramid,toVillage,choice('amarna-344-tomb','Return to the tomb attendant',376)],
  397:[toPyramid,toVillage],
+ 331:[choice('amarna-enter-blasted-opening','Approach the opening',379)],
  379:[
   choice('amarna-enter-secret','Enter the concealed passage',382,{when:s=>!s.flags.athensChristos}),
   choice('amarna-enter-alone','Enter without Christos',382,{when:s=>s.flags.athensChristos,clearFlag:'athensChristos'})
@@ -43,6 +45,9 @@ export const EXTERIOR_CHOICES = {
  319:[toPyramid,toVillage],
  447:[choice('amarna-inn-darkness','Continue in the darkness',373)]
 };
+EXTERIOR_CHOICES[397].push(choice('amarna-blast-opening','Blast the opening with dynamite',331,{
+ when:s=>s.inventory.includes('Dynamite'),effect:'consume-dynamite'
+}));
 for(const [side,entry] of sides) {
  EXTERIOR_CHOICES[entry]=[toPyramid,toVillage];
  if(side==='east'||side==='south') EXTERIOR_CHOICES[entry].push(choice(`amarna-${side}-tomb`,'Go to the public entrance',side==='east'?390:376));
