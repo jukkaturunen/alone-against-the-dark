@@ -470,14 +470,17 @@ export function darkSeaCheckEffect(s,effect,ctx) {
 
 export function darkSeaSkillBonus(s,skill) {
  if(skill!=='Navigate') return 0;
- return (s.darkSea?.routes?.[514]?5:0)+(s.darkSea?.landed&&s.darkSea.routes?.[522]?10:0);
+ return (s.darkSea?.routes?.[514]?5:0)+((s.location==='antarctica'||s.location==='darkSea'&&s.darkSea?.landed)&&s.darkSea?.routes?.[522]?10:0);
 }
 
 const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 
 export function validateDarkSea(s) {
  const v=s.darkSea;
- if(!['darkSea','antarctica'].includes(s.location)) return v===undefined;
+ if(!['darkSea','antarctica'].includes(s.location)) {
+  if(v===undefined) return !s.clues.includes('lostCityAlly');
+  if(v?.landed!==true||!s.clues.includes('lostCityAlly')) return false;
+ }
  if(!record(v)||![456,500,501].includes(v.boarded)||!Array.isArray(s.visited)||!s.visited.includes(v.boarded)) return false;
  if(v.boarded===456?!Object.hasOwn(hidingPlaces,v.hiding):v.hiding!==null) return false;
  if(!Number.isInteger(v.days)||v.days<27||v.days>32||!Number.isInteger(v.day)||v.day<1||v.day>v.days) return false;

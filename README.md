@@ -20,6 +20,8 @@ Follow the expedition lead to Bremen and board The Dark Sea. Investigate aboard,
 
 At eligible endings, pass the investigation from Grunewald to Ernest Holt, Lydia Lau, and Devon Wilson. Each starts with their own character sheet and supplies. Journal notes and the event timeline remain in the same dossier.
 
+The Cairo Museum offers a theft route before October 30. If you find the Old One in Antarctica, the ally can take you to earlier locations without advancing the calendar.
+
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 
 ## Checks and build

@@ -147,3 +147,9 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - Earlier uses of entry 574 with an available successor present the disaster as a possible future, so the next investigator can still act. Victories and Antarctica's world-loss ending close the dossier.
 - Wilson can go ashore at New York, Piraeus, Alexandria, or Bremen. Entry 554 calls his partner Nora, but the game uses Lydia, consistent with entry 37 and both investigator sheets.
 - Each successor can negotiate for a berth on The Dark Sea. Wilson's civilian qualification includes training from his sheet and allocated points above the common starting chances.
+
+## The Old One, Cairo Museum, and the Arkham study (v0.14.0)
+
+- At entry 432 the offer becomes active for new and existing dossiers. From the city streets and safe departure points, the Old One can carry the investigator to open implemented land destinations without advancing the clock. A trip back to the city resumes at entry 549 with the expedition history intact. The ally repels selected attacks in the Parthenon, Bremen, Alexandria, Cairo Museum, and pyramid; gods and shoggoths remain outside its protection.
+- Before October 30 the museum supports both theft routes and the confrontation in Keh's inner office. The display case tracks cumulative damage between actions and persists it across saves. Entry 249 is a victory. The museum reacts differently if the investigator leaves with the Device, surrenders, or tries to destroy it.
+- Lydia's visit to Holt's apartment is a brief new scene based on the location table. At Grunewald's house, successors can follow the signs of a disturbance to search the study and collect its evidence.

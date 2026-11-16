@@ -36,3 +36,5 @@
 .pyramid-cell.down .pyramid-label { top: 20%; }
 .pyramid-cell.mapped { background: transparent; }
 .pyramid-cell.mapped::before { content: none; }
+.passage-destination{width:100%;min-height:44px;padding:10px 12px;border:1px solid #b9c2ab;border-radius:2px;background:#faf7ef;color:var(--ink);font:inherit}
+.passage-destination:focus-visible{outline:3px solid #8e5935;outline-offset:4px}

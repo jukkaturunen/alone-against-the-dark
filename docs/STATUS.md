@@ -1,6 +1,6 @@
 # Project status
 
-Updated: 15 November 2026.
+Updated: 16 November 2026.
 
 ## Decisions
 
@@ -95,9 +95,16 @@ Updated: 15 November 2026.
 - At eligible endings the dossier passes from Grunewald to Holt, then Lau, then Wilson. Each uses the supplied investigator sheet and a separate 150-point allocation. Wilson can start in one of four ports. The Dark Sea's recruitment branches use each investigator's own approach.
 - Schema 8 preserves existing dossiers as Grunewald. Verified a previous-version ending and saved journal through Holt's setup and a browser reload.
 
+## v0.14.0
+
+- 477 of 593 reachable entries, up 19 from v0.13.0 (458). The Cairo Museum adds 15 numbered entries, the Arkham study adds three, and the Old One's transport makes the prepared pyramid entry 421 reachable.
+- The Old One offers instant travel from the Lost City's surface streets and safe locations, including a return to Antarctica. The ally can repel attackers in implemented encounters across Egypt, Bremen, and Athens. The shoggoth and god encounters still pose a threat.
+- The Cairo Museum has day and night theft routes and the confrontation behind Keh's office door. Lydia can visit Holt's apartment. Successors can search Grunewald's house.
+- Schema 9 preserves earlier alliances. Verified a version 8 allied dossier's round trip between the Lost City and Tell-el-Amarna in the browser. Tested the museum victory, the Arkham investigation, and the newly reachable pyramid branch.
+
 ## Next step
 
-Open more of the remaining alternate routes, including the Old One's transport and defense and the encounters tied to particular investigators. Equipment recovery from earlier investigators and optional handoffs during temporary insanity remain pending. Vercel deployment and music remain later steps.
+Open remaining alternate routes. Equipment recovery from earlier investigators, optional handoffs during temporary insanity, and the rest of the Old One's combat interventions remain pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

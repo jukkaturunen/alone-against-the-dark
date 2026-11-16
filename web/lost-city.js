@@ -140,6 +140,8 @@ export const LC_CLUES={
 };
 
 export const LC_ENTRY_CLUES={432:'lostCityAlly',543:'lostCityMap',555:'lostCityPassages',563:'lostCityDevices'};
+export const LC_STREETS = new Set([432,543,545,546,547,548,549,550,551,552,553,568,575]);
+export const hasOldOne = s => s.clues.includes('lostCityAlly');
 
 function choice(id,label,target,extra={}) {
  return {id:`lost-city-${id}`,label,target,duration:0,...extra};
@@ -333,7 +335,7 @@ export function validateLostCity(s) {
  const loss=s.lostCityDexLoss;
  if(loss===undefined) return s.entry!=='lost-city-petrified'&&s.entry!==569;
  const maxLoss=originalDex(s);
- if(s.location!=='antarctica'||!Number.isInteger(loss)||loss<3||loss>maxLoss) return false;
+ if((s.location!=='antarctica'&&!hasOldOne(s))||!Number.isInteger(loss)||loss<3||loss>maxLoss) return false;
  if(s.entry==='lost-city-petrified') return loss===maxLoss;
  return loss<maxLoss||s.entry===569;
 }

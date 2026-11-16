@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions,skill,investigator,nextInvestigator,inheritInvestigation} from '../web/engine.js';
+import {newGame,validAllocation,act,travel,actions,resolveRoll,luckCost,successLevel,validateSave,MORNING,clock,travelOptions,skill,investigator,nextInvestigator,inheritInvestigation,oldOneDestinations,oldOneTravel,region} from '../web/engine.js';
 import {SUGGESTED} from '../web/data.js';
 import {exportSave,importSave,loadLibrary,saveLibrary} from '../web/storage.js';
 const fresh=()=>newGame('test-dossier','Test',SUGGESTED);
@@ -555,8 +555,8 @@ test('survey odds use the spent hour and first face, with Luck spending disabled
  assert.throws(()=>act(s,'amarna-face-east'));
 });
 
-function hiddenEntrance() {
- let s=act(amarna(),'amarna-pyramid');
+function hiddenEntrance(village=amarna()) {
+ let s=act(village,'amarna-pyramid');
  s=act(s,'amarna-survey-east');
  s=resolveRoll(act(s,'amarna-face-east',()=>1));
  s=resolveRoll(act(s,'amarna-move-stone',()=>1));
@@ -682,6 +682,10 @@ const expeditionCamp = ship => choose(ship,'dark-sea-make-landfall','dark-sea-ke
 const lostCity = camp => choose(camp,'antarctic-join-c','antarctic-leave-the-plane','antarctic-cross-the-outskirts',
  'antarctic-pursue-jeffries','antarctic-follow-jeffries','antarctic-enter-the-city');
 const cavernRim = s => choose(s,'lost-city-war-west','lost-city-dome-south','lost-city-trail-figure','lost-city-enter-lower-opening');
+function meetOldOne(camp) {
+ const shrine=choose(lostCity(camp),'lost-city-city-buildings','lost-city-follow-sanctuary-path','lost-city-touch-rose-amulet');
+ return expeditionRoll(expeditionRoll(shrine,'lost-city-old-one-sanity'),'lost-city-old-one-dodge',100);
+}
 
 test('expedition parties advance to the printed journal dates and each can finish',()=>{
  const camp=expeditionCamp(boardDarkSea());
@@ -780,11 +784,47 @@ test('successors use distinct negotiation routes to board The Dark Sea',()=>{
  assert.deepEqual(importSave(exportSave(camp)),camp);
 });
 
+test('Lau can revisit Holt’s apartment and investigate the study in Arkham',()=>{
+ const original=act(act(travel(wait(morning(),1),'university'),'dean'),'abandon');
+ const holt=inheritInvestigation(original,nextInvestigator(original).suggested);
+ assert(!travelOptions(holt).some(l=>l.id==='holtApartmentVisit'));
+ const stopped={...holt,sanity:0};
+ const lau=inheritInvestigation(stopped,nextInvestigator(stopped).suggested);
+ const visit=travel(act(lau,'successor-morning'),'holtApartmentVisit');
+ assert.equal(visit.entry,'lau-visits-holt');
+ const boston=act(travel(visit,'grandCentral'),'rail-boston-18');
+ const home=travel(act(boston,'rail-depot-10'),'home');
+ assert.equal(home.entry,147);
+ const study=choose(home,'home-return','search-grunewald-study');
+ assert.equal(study.entry,165);
+ const result=expeditionRoll(study,'grunewald-study-spot');
+ assert.equal(result.entry,5);
+ assert(result.clues.includes('grunewaldSkin'));
+ assert.deepEqual(importSave(exportSave(result)),result);
+});
+
+test('the Cairo Museum night route preserves glass damage through reload and can reach victory',t=>{
+ t.mock.method(globalThis.crypto,'getRandomValues',values=>{values.fill(5);return values;});
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ let s=choose(travel(cairo,'cairoMuseum'),'cm-device','cm-consider-theft','cm-theft-night');
+ s=expeditionRoll(s,'cm-hide-until-closing');
+ assert.equal(s.entry,280);
+ s=act(s,'cm-glass-bench');
+ assert.equal(s.cmGlass,6);
+ s=act(importSave(exportSave(s)),'cm-glass-bench');
+ assert.equal(s.entry,276);
+ assert(s.inventory.includes('Karpathos Device'));
+ s=act(s,'cm-look-into-dark');
+ for(const id of ['cm-night-spot','cm-night-dodge','cm-night-int']) s=expeditionRoll(s,id);
+ const won=act(s,'cm-dispose-device');
+ assert.equal(won.entry,249);
+ assert.equal(won.phase,'ending');
+ assert.equal(nextInvestigator(won),null);
+ assert.deepEqual(importSave(exportSave(won)),won);
+});
+
 test('a saved Lost City descent uses the lower skill, and the sanctuary amulet can win',()=>{
- let s=choose(lostCity(expeditionCamp(boardDarkSea())),'lost-city-city-buildings',
-  'lost-city-follow-sanctuary-path','lost-city-touch-rose-amulet');
- s=expeditionRoll(s,'lost-city-old-one-sanity');
- s=expeditionRoll(s,'lost-city-old-one-dodge',100);
+ let s=meetOldOne(expeditionCamp(boardDarkSea()));
  s=cavernRim(act(s,'lost-city-leave-new-ally'));
  const pending=act(s,'lost-city-quiet-descent',()=>1);
  assert.equal(pending.pending.base,Math.min(skill(s,'Jump'),skill(s,'Climb')));
@@ -798,6 +838,53 @@ test('a saved Lost City descent uses the lower skill, and the sanctuary amulet c
  assert.equal(s.hp,9);
  assert(!s.inventory.includes('Rose-colored amulet'));
  assert.deepEqual(importSave(exportSave(s)),s);
+});
+
+test('an older allied dossier can travel, receive protection, and return to the Lost City',()=>{
+ const ship=boardDarkSea();
+ const camp=expeditionCamp(ship);
+ assert.deepEqual(oldOneDestinations(camp),[]);
+ const ally=meetOldOne(camp);
+ const older={...ally,version:8};
+ const ready=importSave(JSON.stringify({format:'aatd-save',version:8,game:older}));
+ let s=oldOneTravel(ready,'athensParthenon');
+ assert.equal(region(s),'athens');
+ assert.equal(s.time,ready.time);
+ assert(s.clues.includes('lostCityAlly'));
+ s=choose(importSave(exportSave(s)),'parthenon-hide','parthenon-run');
+ assert.equal(s.entry,33);
+ assert.equal(s.hp,ready.hp);
+ s=act(s,'parthenon-rest');
+ const returned=oldOneTravel(s,'antarctica');
+ assert.equal(returned.entry,549);
+ assert.equal(region(returned),'antarctica');
+ assert.equal(returned.time,s.time);
+ assert.deepEqual(importSave(exportSave(returned)),returned);
+});
+
+test('transport makes the previously unreachable pyramid dynamite branch playable',()=>{
+ let ship=act(boardDarkSea(),'dark-sea-search');
+ for(const id of ['dark-sea-cabin-a-luck','dark-sea-search-chart-room','dark-sea-enter-armory']) ship=expeditionRoll(ship,id);
+ ship=choose(ship,'dark-sea-take-dynamite','dark-sea-leave-armory');
+ ship=expeditionRoll(ship,'dark-sea-exit-cabin');
+ let s=oldOneTravel(meetOldOne(expeditionCamp(ship)),'depot');
+ s=act(travel(wait(s,8),'store'),'buy-rope');
+ s=hiddenEntrance(oldOneTravel(wait(s,1),'amarna'));
+ s=choose(s,'pyramid-descend','pyramid-pit-cross');
+ s=expeditionRoll(s,'pyramid-pit-jump');
+ s=expeditionRoll(s,'pyramid-rites-sanity');
+ s=choose(s,'pyramid-stairs-up','pyramid-junction-up','pyramid-a-corridor','pyramid-a-down','pyramid-i-down',
+  'pyramid-j-down','pyramid-j-rope','pyramid-mosaic-side','pyramid-side-forward');
+ s=expeditionRoll(s,'pyramid-climb-notches');
+ s=expeditionRoll(act(s,'pyramid-slope-down'),'pyramid-slope-grip');
+ s=expeditionRoll(act(s,'pyramid-markings-down'),'pyramid-m-jump-west');
+ s=choose(s,'pyramid-o-shaft','pyramid-o-chamber','pyramid-approach-chamber');
+ s=expeditionRoll(s,'pyramid-late-approach',100);
+ assert.equal(s.entry,431);
+ const escaped=act(s,'pyramid-attack-dynamite');
+ assert.equal(escaped.entry,421);
+ assert(!escaped.inventory.includes('Dynamite'));
+ assert.deepEqual(importSave(exportSave(escaped)),escaped);
 });
 
 test('armory equipment carries to the Lost City and the dynamite ending records permanent DEX loss',()=>{

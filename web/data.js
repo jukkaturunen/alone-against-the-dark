@@ -27,6 +27,7 @@ import { SERVICES_SCENES } from './arkham-services.js';
 import { LATER_SCENES } from './arkham-later.js';
 import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
 import { COMMON_SKILLS, INVESTIGATORS, SUCCESSOR_LOCATIONS, SUCCESSOR_SCENES } from './investigators.js';
+import { SR_LOCATIONS, SR_SCENES, SR_CHECKS, SR_CLUES } from './successor-routes.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
 export const BASE_SKILLS = {...COMMON_SKILLS,...INVESTIGATORS.grunewald.skills};
@@ -60,6 +61,7 @@ export const LOCATIONS = {
  ...BR_LOCATIONS,
  ...DS_LOCATIONS,
  ...SUCCESSOR_LOCATIONS,
+ ...SR_LOCATIONS,
  antarctica:{name:'Antarctica Base Camp',entry:520,region:'antarctica',hours:[0,24],description:'The Starkweather–Moore expedition camp.'}
 };
 export const CLUES = {
@@ -76,6 +78,7 @@ export const CLUES = {
  ...DS_CLUES,
  ...AP_CLUES,
  ...LC_CLUES,
+ ...SR_CLUES,
  ...PAR_CLUES,
  ...CITY_CLUES,
  ...EARLY_CLUES,
@@ -105,6 +108,7 @@ export const CHECKS = {
  ...DS_CHECKS,
  ...AP_CHECKS,
  ...LC_CHECKS,
+ ...SR_CHECKS,
  ...EXTERIOR_CHECKS,
  ...PAR_CHECKS,
  ...CITY_CHECKS,
@@ -143,6 +147,7 @@ export const SCENES = {
  ...AP_SCENES,
  ...LC_SCENES,
  ...SUCCESSOR_SCENES,
+ ...SR_SCENES,
  ...COMBAT_SCENES,
  ...EARLY_SCENES,
  ...LATE_SCENES,

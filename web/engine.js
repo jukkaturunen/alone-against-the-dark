@@ -1,7 +1,8 @@
 import { DS_ENTRIES, DS_ENTRY_CLUES, DS_CHOICES, DS_FLAGS, DS_ENDINGS, darkSeaEnter, darkSeaChoiceEffect, darkSeaCheckEffect, darkSeaOpen, darkSeaSkillBonus, validateDarkSea } from './dark-sea.js';
 import { AP_SCENES, AP_ENTRY_CLUES, AP_CHOICES, AP_FLAGS, approachEnter, antarcticEducationBonus } from './antarctic-approach.js';
-import { LC_SCENES, LC_ENTRY_CLUES, LC_CHOICES, LC_FLAGS, LC_ENDINGS, LC_VICTORIES, lostCityEnter, lostCityChoiceEffect, lostCityCheckEffect, lostCityDexPenalty, validateLostCity } from './lost-city.js';
+import { LC_SCENES, LC_ENTRY_CLUES, LC_CHOICES, LC_FLAGS, LC_ENDINGS, LC_VICTORIES, LC_STREETS, hasOldOne, lostCityEnter, lostCityChoiceEffect, lostCityCheckEffect, lostCityDexPenalty, validateLostCity } from './lost-city.js';
 import { COMMON_SKILLS, INVESTIGATORS, ORDER, SUCCESSOR_LOCATIONS, trainedSkill } from './investigators.js';
+import { SR_ENTRIES, SR_ENTRY_CLUES, SR_CHOICES, successorHomeEntry } from './successor-routes.js';
 import { BR_ENTRIES, BR_ENTRY_CLUES, BR_CHOICES, BR_FLAGS, BR_ENDINGS, BR_LOCKED_ENTRIES, bremenEnter, bremenCheckEffect, validateBremen } from './bremen.js';
 import { BR_TRAVEL_ENTRIES, BR_TRAVEL_CHOICES, bremenConnections } from './bremen-travel.js';
 import { PUZZLE_SCENES, PUZZLE_ENTRY_CLUES, PUZZLE_CHOICES, PUZZLE_FLAGS, PUZZLE_ENDINGS, puzzleChoiceEffect, puzzleCheckEffect, puzzleEnter, puzzleSkillPenalty, validatePuzzle } from './amarna-puzzle.js';
@@ -10,7 +11,7 @@ import { EXTERIOR_ENTRIES, EXTERIOR_CHOICES, EXTERIOR_CHECKS } from './amarna-ex
 import { CITY_ENTRIES, CITY_ENTRY_CLUES, CITY_CHOICES, CITY_FLAGS, CITY_ENDINGS, cityOpen, cityChoiceEffect, cityCheckEffect } from './cairo-city.js';
 import { PAR_ENTRIES, PAR_ENTRY_CLUES, PAR_CHOICES, PAR_FLAGS, PAR_LOCKED_ENTRIES, PAR_ENDINGS, PAR_RING } from './parthenon.js';
 import { ROAD_ENTRIES, ROAD_CHOICES, MARKET_ROAD_ENTRIES } from './egypt-road.js';
-import { CM_ENTRIES, CM_ENTRY_CLUES, CM_CHOICES, CM_FLAGS, cmOpen, cmEntry } from './cairo-museum.js';
+import { CM_ENTRIES, CM_ENTRY_CLUES, CM_CHOICES, CM_FLAGS, CM_ENDINGS, CM_VICTORIES, cmOpen, cmEntry, cmEnter, cmChoiceEffect, cmCheckEffect, cmIsEncounter, validateMuseum } from './cairo-museum.js';
 import { AM_ENTRIES, AM_ENTRY_CLUES, AM_CHOICES, AM_FLAGS, amOpen } from './athens-museum.js';
 import { CAFE_ENTRIES, CAFE_ENTRY_CLUES, CAFE_CHOICES, CAFE_FLAGS } from './athens-cafe.js';
 import { CASE_LOCATIONS, CASE_ENTRIES, CASE_ENTRY_CLUES, CASE_CHOICES, CASE_FLAGS, caseOpen, caseChoiceAvailable } from './athens-case.js';
@@ -27,18 +28,18 @@ import { NY_TRAVEL_ENTRIES } from './ny-travel.js';
 import { serviceActions, performService } from './arkham-services.js';
 import { CONTACT_LOCATIONS, CONTACT_ENTRIES, CONTACT_ENTRY_CLUES, CONTACT_CHOICES, contactOpen, contactChoiceStatus } from './ny-contacts.js';
 import { NEWS_ENTRIES, NEWS_ENTRY_CLUES, NEWS_CHOICES, NEWS_AVAILABILITY_ENTRY } from './ny-news.js';
-const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES, ...CONTACT_ENTRY_CLUES, ...NEWS_ENTRY_CLUES,...EARLY_ENTRY_CLUES,...LATE_ENTRY_CLUES,...EGYPT_ENTRY_CLUES,...CASE_ENTRY_CLUES,...CAFE_ENTRY_CLUES,...AM_ENTRY_CLUES,...CM_ENTRY_CLUES,...PAR_ENTRY_CLUES,...CITY_ENTRY_CLUES,...UPPER_ENTRY_CLUES,...PUZZLE_ENTRY_CLUES,...BR_ENTRY_CLUES,...DS_ENTRY_CLUES,...AP_ENTRY_CLUES,...LC_ENTRY_CLUES};
+const ENTRY_CLUES = {...HARDING_CLUES, ...NYC_ENTRY_CLUES, ...CONTACT_ENTRY_CLUES, ...NEWS_ENTRY_CLUES,...EARLY_ENTRY_CLUES,...LATE_ENTRY_CLUES,...EGYPT_ENTRY_CLUES,...CASE_ENTRY_CLUES,...CAFE_ENTRY_CLUES,...AM_ENTRY_CLUES,...CM_ENTRY_CLUES,...PAR_ENTRY_CLUES,...CITY_ENTRY_CLUES,...UPPER_ENTRY_CLUES,...PUZZLE_ENTRY_CLUES,...BR_ENTRY_CLUES,...DS_ENTRY_CLUES,...AP_ENTRY_CLUES,...LC_ENTRY_CLUES,...SR_ENTRY_CLUES};
 import { LATER_CHOICES } from './arkham-later.js';
 import { readLegacySave } from './legacy-save.js';
 import { HOUR, HALF_HOUR, DAY, MORNING, LATE_ARKHAM, dayStart, weekday, nightStart, mealCount, mealTarget, canEat, sleepHours, advanceCalendar, hourOf } from './calendar.js';
 export { MORNING, mealCount, mealTarget, canEat, sleepHours };
-export const VERSION = 8;
+export const VERSION = 9;
 export const START = Date.UTC(1931, 8, 1, 20);
 
 const successorStarts=Object.fromEntries(Object.entries(SUCCESSOR_LOCATIONS).map(([id,location])=>[id,[location.entry]]));
 const rochesterPorts={pier:'New York',athensHarbor:'Piraeus',alexandriaHarbor:'Alexandria',bremenHarbor:'Bremen'};
 const startingApartment=s=>s.location==='holtApartment'||s.location==='lauApartment';
-const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES,...NY_TRAVEL_ENTRIES,...CONTACT_ENTRIES,...NEWS_ENTRIES,
+const ENTRIES = {...SR_ENTRIES,home:[13,102,147,...SR_ENTRIES.home],bank:[3],newspaper:[60,172],university:[82,122,100,186,145,574,143,197],diner:[593],depot:[16],boston:[64],harding:HARDING_ENTRIES,store:[38],hospital:[585],...NYC_ENTRIES,...NY_TRAVEL_ENTRIES,...CONTACT_ENTRIES,...NEWS_ENTRIES,
  liner:[187,...SHIP_DAYS,...Object.keys({...EARLY_SCENES,...LATE_SCENES,...COMBAT_SCENES}).map(id=>/^\d+$/.test(id)?Number(id):id)],
  athensHarbor:[173],alexandriaHarbor:[195],...MED_ENTRIES,...EGYPT_ENTRIES,...CASE_ENTRIES,...CAFE_ENTRIES,...AM_ENTRIES,...CM_ENTRIES,...PAR_ENTRIES,...ROAD_ENTRIES,...CITY_ENTRIES,...BR_TRAVEL_ENTRIES,...BR_ENTRIES,...DS_ENTRIES,
  darkSea:[...DS_ENTRIES.darkSea,531],
@@ -48,7 +49,7 @@ const ENTRIES = {home:[13,102,147],bank:[3],newspaper:[60,172],university:[82,12
  ...successorStarts
 };
 export function region(s) {
- return s.darkSea?.landed?'antarctica':LOCATIONS[s.location].region || 'arkham';
+ return s.location==='darkSea'&&s.darkSea?.landed?'antarctica':LOCATIONS[s.location].region || 'arkham';
 }
 
 export function hour(s) { return new Date(s.time).getUTCHours(); }
@@ -75,13 +76,13 @@ export function newGame(id,name,allocation) {
  return s;
 }
 export function investigationWon(s) {
- return s.phase==='ending'&&([433,'dark-sea-saved-at-sea'].includes(s.entry)||LC_VICTORIES.has(s.entry));
+ return s.phase==='ending'&&([433,'dark-sea-saved-at-sea'].includes(s.entry)||LC_VICTORIES.has(s.entry)||CM_VICTORIES.has(s.entry));
 }
 export function investigationEnded(s) {
  return s.phase==='ending'||(!s.pending&&(s.hp===0||s.sanity===0));
 }
 export function nextInvestigator(s) {
- if(!investigationEnded(s)||investigationWon(s)||s.entry===574&&s.darkSea?.landed) return null;
+ if(!investigationEnded(s)||investigationWon(s)||s.entry===574&&region(s)==='antarctica') return null;
  const next=ORDER[ORDER.indexOf(investigator(s).key)+1];
  return next?INVESTIGATORS[next]:null;
 }
@@ -122,8 +123,17 @@ function log(s,text) { s.log.push({time:s.time,text}); }
 function unlock(s,id) {
  if(!s.clues.includes(id)) { s.clues.push(id); log(s,`Collected: ${CLUES[id].title}.`); }
 }
+const defendedEntries={222:241,27:33,31:33,478:467,484:470,354:328,355:303,402:423,430:442,407:399,422:399,230:293,'cm-guard-1':293,'cm-guard-2':293,'cm-guard-3':293};
+function defendedEntry(s,entry) {
+ if(!hasOldOne(s)||!Object.hasOwn(defendedEntries,entry)) return entry;
+ if(entry===354) s.flags.pyramidMetStairGhast=true;
+ log(s,'The Old One drives the attackers back and clears a path for you.');
+ return defendedEntries[entry];
+}
 function go(s,entry) {
  const previousEntry=s.entry;
+ if(s.location==='home'&&entry===102) entry=successorHomeEntry(s);
+ entry=defendedEntry(s,entry);
  if(s.voyage&&entry===187&&s.entry!==187) {
   delete s.voyage.struggle;
   finishActivity(s);
@@ -155,6 +165,7 @@ function go(s,entry) {
  if(entry===28) delete s.flags.doorOpen;
  if(entry===7) delete s.flags.windowQuiet;
  if(s.location==='amarna') puzzleEnter(s,previousEntry,{go,rollDie,log});
+ if(s.location==='cairoMuseum') cmEnter(s,previousEntry,{go,rollDie,log});
  bremenEnter(s,{go,log});
  darkSeaEnter(s,previousEntry,{rollDie,go,log});
  if(s.darkSea?.landed&&s.entry!==531&&(Object.hasOwn(AP_SCENES,s.entry)||Object.hasOwn(LC_SCENES,s.entry))) {
@@ -249,8 +260,8 @@ export function isOpen(location,time) {
 }
 export function canLeaveLocation(s) {
  if(s.pending||s.phase!=='playing'||investigationEnded(s)||s.flags.caughtOnEntry||[12,13,79,100,112,147,172,197,219,222,227,240,241,375,554,'fuzira-mirror-hound'].includes(s.entry)) return false;
- if(startingApartment(s)&&s.sleptNight===null) return false;
- if(s.darkSea||s.location==='liner'||PAR_LOCKED_ENTRIES.has(s.entry)||BR_LOCKED_ENTRIES.has(s.entry)||s.location==='amarna'&&Object.hasOwn(PUZZLE_SCENES,s.entry)) return false;
+ if((startingApartment(s)&&s.sleptNight===null)||cmIsEncounter(s)) return false;
+ if(['darkSea','antarctica','liner'].includes(s.location)||PAR_LOCKED_ENTRIES.has(s.entry)||BR_LOCKED_ENTRIES.has(s.entry)||s.location==='amarna'&&Object.hasOwn(PUZZLE_SCENES,s.entry)) return false;
  if(s.location!=='harding') return true;
  return [113,23,45,89,90,2,51].includes(s.entry)||(s.entry===7&&s.flags.windowQuiet===true);
 }
@@ -459,7 +470,14 @@ export function actions(s) {
 }
 export function travelOptions(s) {
  if(s.location==='rochester') return [];
- return Object.entries(LOCATIONS).filter(([id,l])=>(l.region||'arkham')===region(s)&&(!Object.hasOwn(SUCCESSOR_LOCATIONS,id)||id===s.location)).map(([id,l])=>({id,...l,open:id==='nySun'||isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
+ return Object.entries(LOCATIONS).filter(([id,l])=>(l.region||'arkham')===region(s)&&(!l.investigator||l.investigator===s.investigator)&&(!Object.hasOwn(SUCCESSOR_LOCATIONS,id)||id===s.location)).map(([id,l])=>({id,...l,open:id==='nySun'||isOpen(id,s.time+HOUR),disabled:l.unavailable||id===s.location||!canLeaveLocation(s)}));
+}
+const transportExcluded = new Set(['liner','darkSea','darkSeaGangplank','kyonas',...Object.keys(SUCCESSOR_LOCATIONS)]);
+export function oldOneDestinations(s) {
+ if(!hasOldOne(s)||s.phase!=='playing'||s.pending||investigationEnded(s)) return [];
+ if(!canLeaveLocation(s)&&!(s.location==='antarctica'&&LC_STREETS.has(s.entry))&&!(s.location==='amarna'&&s.entry===382)) return [];
+ return Object.entries(LOCATIONS).filter(([id,l])=>id!==s.location&&!l.unavailable&&(!l.investigator||l.investigator===s.investigator)&&!transportExcluded.has(id)&&isOpen(id,s.time))
+  .map(([id,l])=>({id,name:id==='antarctica'?'City of the Old Ones':l.name,region:l.region||'arkham'}));
 }
 function startCheck(s,id,rollFn) {
  const r=CHECKS[id],base=checkBase(s,r),target=difficultyTarget(base,r.difficulty);
@@ -480,7 +498,7 @@ function startCheck(s,id,rollFn) {
  s.pending={id,roll,target,base,skill:r.skill,difficulty:r.difficulty||'Regular',duration,level:successLevel(roll,base,target)};
  log(s,`${r.skill}: rolled ${roll} against ${target} (${s.pending.level}; ${s.pending.difficulty} difficulty).`);
 }
-const fieldChoiceTables=[CASE_CHOICES,CAFE_CHOICES,AM_CHOICES,CM_CHOICES,PAR_CHOICES,ROAD_CHOICES,CITY_CHOICES,EXTERIOR_CHOICES,UPPER_CHOICES,PUZZLE_CHOICES,BR_TRAVEL_CHOICES,BR_CHOICES,DS_CHOICES,AP_CHOICES,LC_CHOICES];
+const fieldChoiceTables=[CASE_CHOICES,CAFE_CHOICES,AM_CHOICES,CM_CHOICES,PAR_CHOICES,ROAD_CHOICES,CITY_CHOICES,EXTERIOR_CHOICES,UPPER_CHOICES,PUZZLE_CHOICES,BR_TRAVEL_CHOICES,BR_CHOICES,DS_CHOICES,AP_CHOICES,LC_CHOICES,SR_CHOICES];
 function fieldChoices(entry) {
  return fieldChoiceTables.flatMap(table=>table[entry]||[]);
 }
@@ -642,6 +660,7 @@ export function act(original,id,rollFn=d100,foodRoll=()=>rollDie(10)) {
   if(choice.flag) s.flags[choice.flag]=true;
   if(choice.destination) s.location=choice.destination;
   if(puzzleChoiceEffect(s,choice.effect,{rollDie,go,log,skill})) return s;
+  if(cmChoiceEffect(s,choice.effect,{rollDie,go,log,advance})) return s;
   if(lostCityChoiceEffect(s,choice.effect,{rollDie,go,log})) return s;
   if(darkSeaChoiceEffect(s,choice.effect,{rollDie,go,log,skill})) return s;
   if(cityChoiceEffect(s,choice.effect,{rollDie,go,log,skill})) return s;
@@ -717,7 +736,7 @@ export function resolveRoll(original,spend=false) {
   }
  }
  const effect=success?r.successEffect:r.failureEffect;
- const handled=puzzleCheckEffect(s,effect,{rollDie,go,log,level})||lostCityCheckEffect(s,effect,{rollDie,go,log})||darkSeaCheckEffect(s,effect,{rollDie,go,log,level})||bremenCheckEffect(s,effect,{rollDie,go,log,advanceJourney})||cityCheckEffect(s,effect,{rollDie,go,log,level})||egyptCombatEffect(s,effect,{rollDie,go,log})||shipCombatEffect(s,effect,{rollDie,go,log,endVoyage,finishActivity,level});
+ const handled=puzzleCheckEffect(s,effect,{rollDie,go,log,level})||cmCheckEffect(s,effect,{rollDie,go,log,advance})||lostCityCheckEffect(s,effect,{rollDie,go,log})||darkSeaCheckEffect(s,effect,{rollDie,go,log,level})||bremenCheckEffect(s,effect,{rollDie,go,log,advanceJourney})||cityCheckEffect(s,effect,{rollDie,go,log,level})||egyptCombatEffect(s,effect,{rollDie,go,log})||shipCombatEffect(s,effect,{rollDie,go,log,endVoyage,finishActivity,level});
  if(!handled&&target===187&&(success?r.successAdvanceDay:r.failureAdvanceDay)) {
   finishActivity(s,true);
   s.entry=187;
@@ -735,13 +754,28 @@ export function travel(original,destination) {
  const option=travelOptions(original).find(l=>l.id===destination);
  if(!option||option.disabled) throw new Error('That destination is not available.');
  if(!option.open) throw new Error('That location will be closed when you arrive.');
- const s=structuredClone(original);advance(s,1);s.location=destination;
+ const s=structuredClone(original);
+ advance(s,1);
+ arriveLocal(s,destination);
+ log(s,`Travelled to ${LOCATIONS[destination].name}.`);
+ return s;
+}
+export function oldOneTravel(original,destination) {
+ const option=oldOneDestinations(original).find(l=>l.id===destination);
+ if(!option) throw new Error('The Old One cannot take you there now.');
+ const s=structuredClone(original);
+ log(s,`The Old One carried you to ${option.name}.`);
+ arriveLocal(s,destination,destination==='antarctica'?549:undefined);
+ return s;
+}
+function arriveLocal(s,destination,arrivalEntry) {
+ s.location=destination;
  delete s.flags.hospitalTreated;
  if(destination==='nyLibrary') {
   s.nyTopics=0;
   for(const id of Object.keys(NYC_CHECKS)) delete s.attempts[id];
  } else delete s.nyTopics;
- let entry=LOCATIONS[destination].entry;
+ let entry=arrivalEntry??LOCATIONS[destination].entry;
  if(destination==='nySun') {
   delete s.attempts['ny-sun-luck'];
   if(!isOpen('nySun',s.time)) entry=NEWS_AVAILABILITY_ENTRY;
@@ -751,7 +785,6 @@ export function travel(original,destination) {
  if(destination==='harding'&&(hour(s)>=20||hour(s)<8)) entry=90;
  if(destination==='home'&&s.time>=LATE_ARKHAM) entry=147;
  go(s,entry);
- log(s,`Travelled to ${LOCATIONS[destination].name}.`);return s;
 }
 function plain(x) {return x&&typeof x==='object'&&!Array.isArray(x);}
 function num(x,min,max) {return Number.isInteger(x)&&x>=min&&x<=max;}
@@ -774,6 +807,9 @@ export function validateSave(s) {
  if(!Object.hasOwn(LOCATIONS,s.location)||!['playing','complete','ending'].includes(s.phase)||!Array.isArray(s.clues)||s.clues.length>Object.keys(CLUES).length||!s.clues.every(c=>Object.hasOwn(CLUES,c))||new Set(s.clues).size!==s.clues.length) return false;
  if(!ENTRIES[s.location]?.includes(s.entry)||!plain(s.flags)) return false;
  if(Object.hasOwn(SUCCESSOR_LOCATIONS,s.location)&&s.location!==profile.location) return false;
+ const requiredInvestigator=LOCATIONS[s.location].investigator;
+ if(requiredInvestigator&&requiredInvestigator!==profile.key) return false;
+ if(profile.key===ORDER[0]&&s.location==='home'&&SR_ENTRIES.home.includes(s.entry)) return false;
  const boolFlags=['telegramRead','ticketFunded','hardingRejected','doorOpen','windowQuiet','caughtOnEntry','bookSkimmed','hospitalTreated','athensHotelStayed',...CASE_FLAGS,...CAFE_FLAGS,...AM_FLAGS,...CM_FLAGS,...PAR_FLAGS,...CITY_FLAGS,...PUZZLE_FLAGS,...BR_FLAGS,...DS_FLAGS,...AP_FLAGS,...LC_FLAGS];
  if(Object.entries(s.flags).some(([k,v])=>k==='endReason'?v!=='boston':!boolFlags.includes(k)||typeof v!=='boolean')) return false;
  if(s.flags.hospitalTreated&&s.entry!==585) return false;
@@ -787,11 +823,11 @@ export function validateSave(s) {
   if(!plain(v)||!num(v.departure,START,s.time)||v.departure%HOUR!==0||hourOf(v.departure)!==12||new Date(v.departure).getUTCDay()!==6||!num(v.day,1,9)||!num(v.slot,0,v.day===9?0:2)||((s.entry==='ship-cinema-grabbed')?!num(v.struggle,1,6):v.struggle!==undefined)||s.time!==dayStart(v.departure)+v.day*DAY+[8,13,20][v.slot]*HOUR) return false;
  } else if(s.voyage!==undefined) return false;
  if(!validateShipCombat(s)||s.shipCombat&&s.location!=='liner') return false;
- if(!validatePuzzle(s)||!validateBremen(s)||!validateDarkSea(s)||!validateLostCity(s)) return false;
+ if(!validatePuzzle(s)||!validateBremen(s)||!validateDarkSea(s)||!validateLostCity(s)||!validateMuseum(s)) return false;
  if(s.amarnaSurvey!==undefined&&(!plain(s.amarnaSurvey)||!num(s.amarnaSurvey.day,dayStart(START),dayStart(s.time))||s.amarnaSurvey.day%DAY!==0||![317,359,337,561].includes(s.amarnaSurvey.first))) return false;
  if(s.cityStallDamage!==undefined&&(s.entry!==375||!num(s.cityStallDamage,1,5))) return false;
  if(s.alexandriaDamage!==undefined&&(s.entry!==222||!num(s.alexandriaDamage,1,5))) return false;
- const terminal=PAR_ENDINGS.has(s.entry)||puzzleEnds(s.entry)||BR_ENDINGS.has(s.entry)||DS_ENDINGS.has(s.entry)||LC_ENDINGS.has(s.entry);
+ const terminal=PAR_ENDINGS.has(s.entry)||puzzleEnds(s.entry)||BR_ENDINGS.has(s.entry)||DS_ENDINGS.has(s.entry)||LC_ENDINGS.has(s.entry)||CM_ENDINGS.has(s.entry);
  if(s.phase==='ending'&&!terminal&&![574,'alexandria-ending','hawkes-ending'].includes(s.entry)&&s.location!=='liner'&&!CITY_ENDINGS.includes(s.entry)) return false;
  if(terminal&&s.phase!=='ending') return false;
  if(!str(s.notes,20000)||!Array.isArray(s.inventory)||s.inventory.length>100||!s.inventory.every(i=>str(i,200))||!Array.isArray(s.log)||s.log.length>15000||!s.log.every(l=>plain(l)&&num(l.time,START,s.time)&&str(l.text,500))) return false;
@@ -803,7 +839,7 @@ export function validateSave(s) {
  return true;
 }
 export function migrateSave(original) {
- const s=[3,4,5,6,7,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
+ const s=[3,4,5,6,7,8,VERSION].includes(original?.version) ? structuredClone(original) : readLegacySave(original);
  if(s.version===2) {
   s.version=3;
   s.mealDebt=0;
@@ -845,9 +881,10 @@ export function migrateSave(original) {
   if(Array.isArray(s.visited)&&s.visited.includes('dark-sea-reassured')) s.flags.antarcticEducationAid=true;
  }
  if(s.version===7) {
-  s.version=VERSION;
+  s.version=8;
   s.investigator=ORDER[0];
  }
+ if(s.version===8) s.version=VERSION;
  if(!validateSave(s)) throw new Error('This dossier could not be read safely. The original has not been changed.');
  return s;
 }
