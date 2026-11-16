@@ -486,6 +486,75 @@ test('Cairo museum keeps split hours and switches the exhibition on October 30',
  assert(validateSave(exhibit));
 });
 
+function alAzhar() {
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ return travel({...cairo,time:Date.UTC(1931,8,16,6)},'cairoUniversity');
+}
+
+test('Al-Azhar’s two searches unlock the shelves and preserve a student translation roll',()=>{
+ let s=choose(alAzhar(),'azhar-languages','azhar-assign-translator','azhar-library');
+ s=expeditionRoll(s,'azhar-search-first');
+ assert.equal(s.entry,253);
+ s=expeditionRoll(act(s,'azhar-return-library'),'azhar-search-second');
+ assert.equal(s.entry,275);
+ assert.equal(clock(s.time),'11:00 AM');
+ assert(!actions(s).some(a=>a.id==='assist-translator-azhar-read-265'));
+ s=wait(s,4);
+ const pending=act(s,'assist-translator-azhar-read-265',()=>30);
+ assert.equal(pending.pending.companion,'translator');
+ assert.equal(pending.pending.target,50);
+ assert.equal(clock(pending.time),'4:00 PM');
+ s=resolveRoll(importSave(exportSave(pending)));
+ assert.equal(s.entry,265);
+ assert(s.clues.includes('azharCultOfAten'));
+ assert.equal(s.lastRoll.companion,'translator');
+ assert.equal(skill(s,'Language (French)'),1);
+});
+
+test('Jahark’s map improves the east survey and his skills are offered on eligible checks',()=>{
+ const interview=expeditionRoll(act(alAzhar(),'azhar-ancient'),'azhar-ancient-history');
+ let s=choose(interview,'azhar-jahark-pyramid','azhar-take-map','azhar-hear-key-riddle','azhar-return-jahark');
+ assert(s.clues.includes('azharEastMap'));
+ s=choose(expeditionRoll(s,'azhar-jahark-spot'),'azhar-jahark-continue','azhar-recruit-jahark');
+ assert(s.flags.azharJahark);
+ const museum=act(travel(s,'cairoMuseum'),'cm-tombs');
+ const withJahark=act(museum,'assist-jahark-cm-model-mythos',()=>10);
+ assert.equal(withJahark.pending.target,10);
+ assert.equal(withJahark.pending.companion,'jahark');
+ assert.equal(resolveRoll(importSave(exportSave(withJahark))).entry,244);
+ const site=amarna();
+ const map={...site,clues:[...new Set([...site.clues,...s.clues])]};
+ const survey=choose(map,'amarna-pyramid','amarna-survey-east');
+ const rolled=act(survey,'amarna-face-east',()=>10);
+ assert(rolled.log.some(event=>event.text.startsWith('Bonus dice')));
+ assert.equal(resolveRoll(rolled).entry,397);
+});
+
+test('the Athens–Cairo train takes three days and the private suite has a saved danger branch',t=>{
+ t.mock.method(globalThis.crypto,'getRandomValues',values=>{values.fill(0);return values;});
+ const rail=travel(landfall('athens'),'athensRail');
+ const start=act({...rail,time:Date.UTC(1931,8,15,9)},'cairo-train-board');
+ assert.equal(start.entry,42);
+ assert.equal(clock(start.time),'12:00 PM');
+ const common=choose(start,'cairo-train-seat','cairo-train-arrive');
+ assert.equal(common.time-start.time,72*3600000);
+ assert.equal(common.entry,205);
+ const suite=act(start,'cairo-train-suite');
+ const alert=expeditionRoll(importSave(exportSave(suite)),'cairo-train-listen');
+ assert.equal(alert.entry,97);
+ assert(alert.flags.cairoTrainAlert);
+ let s=choose(alert,'cairo-train-pull-cord','cairo-train-check-bite');
+ s=expeditionRoll(s,'cairo-train-con',100);
+ s=expeditionRoll(s,'cairo-train-doctor',100);
+ s=expeditionRoll(s,'cairo-train-first-aid');
+ const arrived=act(s,'cairo-train-arrive');
+ assert.equal(arrived.time,common.time);
+ assert.equal(arrived.egyptTrain,undefined);
+ assert.deepEqual(importSave(exportSave(arrived)),arrived);
+ const delayed=choose(alert,'cairo-train-window','cairo-train-next-train','cairo-train-arrive');
+ assert.equal(delayed.time,common.time+24*3600000);
+});
+
 test('Cairo museum staff investigation unlocks Keh’s fate after the cutoff',()=>{
  const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
  let s=travel({...cairo,time:Date.UTC(1931,9,30,8)},'cairoMuseum');

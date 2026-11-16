@@ -61,7 +61,7 @@ export const EGYPT_CHOICES = {
 
 export function egyptChoiceAvailable(state,choice) {
  if(choice.id==='alexandria-docks') return hourOf(state.time)>=8&&hourOf(state.time)<19;
- if(choice.id==='alexandria-speak-arabic') return (state.allocation['Language (Arabic)']||0)>0;
+ if(choice.id==='alexandria-speak-arabic') return (state.allocation['Language (Arabic)']||0)>0||state.flags.azharJahark;
  return true;
 }
 

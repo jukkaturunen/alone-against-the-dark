@@ -195,7 +195,7 @@ export const PUZZLE_CHOICES = {
  393:[move('a-corridor','Follow the western corridor',308),move('a-shaft','Investigate the angled shaft',400),move('a-junction','Go back down the stairs',313)],
  400:[move('slanted-back','Return to the stairs',393)],
  309:[move('slide-back','Slide back down',393)],
- 353:[choice('translate-j','Read the inscriptions',345,{when:s=>trainedSkill(s,'Language (Hieroglyphics)')>1})],
+ 353:[choice('translate-j','Read the inscriptions',345,{when:s=>trainedSkill(s,'Language (Hieroglyphics)')>1||s.flags.azharJahark})],
  345:[choice('translation-back','Continue to the shaft',353)],
  366:[move('grapple-down','Climb down using the handholds',395)],
  323:[move('j-up','Go up the notched shaft',308),move('j-down','Follow the stairs down',394)],

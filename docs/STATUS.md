@@ -109,9 +109,16 @@ Updated: 16 November 2026.
 - Successors can return to certain private sites and attempt a Luck roll to recover portable possessions. Schema 10 preserves older dossiers, including eligible endings before the handoff.
 - Verified all 24 desert entries through game actions. In the browser, imported an earlier Fuzira save and verified the water count and pending roll across reloads.
 
+## v0.16.0
+
+- 553 of 593 reachable entries, up 47 from v0.15.0 (506). Al-Azhar adds 27 faculty and campus entries and 12 library entries. The Athens–Cairo train adds eight.
+- At Al-Azhar, search two library collections and consult six departments. The student translator helps in Cairo. Jahark can join the investigation in Egypt, and his marked map improves the east-face search at Tell-el-Amarna.
+- The noon Athens–Cairo train reaches Cairo in three days, with a shared carriage or the private-suite encounter. The window escape adds a day.
+- Schema 11 preserves assisted rolls. Verified a pending student translation in the browser after reload. The automated suite also covers staged library research, recruitment, the map bonus, and the private-suite train routes.
+
 ## Next step
 
-Open the Al-Azhar University investigation and other remaining Egyptian routes. Optional handoffs during temporary insanity and the rest of the Old One's combat interventions remain pending. Vercel deployment and music remain later steps.
+Open the remaining Athens flights and alternate Dark Sea branches. Optional handoffs during temporary insanity and more Old One combat interventions remain pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

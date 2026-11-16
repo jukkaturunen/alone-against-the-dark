@@ -52,7 +52,8 @@ export const EXTERIOR_CHECKS = Object.fromEntries(sides.map(([side,entry])=>[
  `amarna-face-${side}`,{
   entry,skill:'Survey chance',label:`Search the ${side} face`,duration:0,daily:true,
   skillBonus:s=>Math.max(0,surveyChance(s,entry)-1),noLuck:true,strictChance:true,
-  successEntry:side==='east'?397:344,failureEntry:side==='north'||side==='west'?360:entry
+  successEntry:side==='east'?397:344,failureEntry:side==='north'||side==='west'?360:entry,
+  bonusDie:s=>side==='east'&&s.clues.includes('azharEastMap')
  }
 ]));
 EXTERIOR_CHECKS['amarna-move-stone']={

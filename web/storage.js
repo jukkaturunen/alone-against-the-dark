@@ -2,7 +2,7 @@ import { VERSION, validateSave, migrateSave } from './engine.js';
 
 const KEY='aatd.dossiers.v1';
 const BACKUP_V1='aatd.dossiers.backup-before-v2';
-const SUPPORTED_VERSIONS=[1,2,3,4,5,6,7,8,9,VERSION];
+const SUPPORTED_VERSIONS=[1,2,3,4,5,6,7,8,9,10,VERSION];
 const LIBRARY_ERROR='The saved dossiers could not be read. Your browser copy has not been overwritten.';
 
 function parseLibrary(raw) {

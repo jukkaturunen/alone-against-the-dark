@@ -24,6 +24,8 @@ The Cairo Museum offers a theft route before October 30. If you find the Old One
 
 In Egypt, hire a driver to Tell-el-Amarna or take the Quattarra caravan from Fuzira. In the Western Desert, choose when to navigate, walk, or wait for help while your water lasts. Successors can also try to recover gear left at certain private sites.
 
+Take the noon train from Athens to Cairo, then consult the departments and library at Al-Azhar University. The student translator and Professor Jahark can assist with selected checks.
+
 Progress, pending dice results, discovered evidence, and notes autosave in this browser. Separate dossiers and JSON export/import are supported. Import creates a separate dossier. Browser storage is not cross-device cloud storage; export a backup before clearing browser data.
 
 ## Checks and build

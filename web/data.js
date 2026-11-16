@@ -30,12 +30,17 @@ import { COMMON_SKILLS, INVESTIGATORS, SUCCESSOR_LOCATIONS, SUCCESSOR_SCENES } f
 import { SR_LOCATIONS, SR_SCENES, SR_CHECKS, SR_CLUES } from './successor-routes.js';
 import { ESTATE_CHECKS } from './estate.js';
 import { QT_LOCATIONS, QT_SCENES, QT_CHECKS } from './quattarra.js';
+import { AZ_LOCATIONS, AZ_SCENES, AZ_CLUES, AZ_CHECKS } from './azhar-staff.js';
+import { AL_SCENES, AL_CLUES, AL_CHECKS } from './azhar-library.js';
+import { ET_LOCATIONS, ET_SCENES, ET_CHECKS } from './cairo-train.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
 export const BASE_SKILLS = {...COMMON_SKILLS,...INVESTIGATORS.grunewald.skills};
 export const SUGGESTED = INVESTIGATORS.grunewald.suggested;
 export const LOCATIONS = {
  ...QT_LOCATIONS,
+ ...AZ_LOCATIONS,
+ ...ET_LOCATIONS,
  home:{name:"Grunewald’s home",entry:102,hours:[0,24],description:'A quiet place to eat, rest, and make telephone calls.'},
  bank:{name:'First National Bank',entry:3,hours:[9,15],description:'Withdraw travel funds from your account.'},
  newspaper:{name:'Arkham Advertiser',entry:60,hours:[8,17],description:'News, shipping schedules, and back-issue files.'},
@@ -68,6 +73,8 @@ export const LOCATIONS = {
  antarctica:{name:'Antarctica Base Camp',entry:520,region:'antarctica',hours:[0,24],description:'The Starkweather–Moore expedition camp.'}
 };
 export const CLUES = {
+ ...AZ_CLUES,
+ ...AL_CLUES,
  ...HARDING_CLUES,
  ...NYC_CLUES,
  ...EGYPT_CLUES,
@@ -115,6 +122,9 @@ export const CHECKS = {
  ...ESTATE_CHECKS,
  ...ROAD_CHECKS,
  ...QT_CHECKS,
+ ...AZ_CHECKS,
+ ...AL_CHECKS,
+ ...ET_CHECKS,
  ...EXTERIOR_CHECKS,
  ...PAR_CHECKS,
  ...CITY_CHECKS,
@@ -131,6 +141,9 @@ export const CHECKS = {
 };
 export const SCENES = {
  ...QT_SCENES,
+ ...AZ_SCENES,
+ ...AL_SCENES,
+ ...ET_SCENES,
  ...HARDING_SCENES,
  ...LATER_SCENES,
  ...NYC_SCENES,
