@@ -102,9 +102,16 @@ Updated: 16 November 2026.
 - The Cairo Museum has day and night theft routes and the confrontation behind Keh's office door. Lydia can visit Holt's apartment. Successors can search Grunewald's house.
 - Schema 9 preserves earlier alliances. Verified a version 8 allied dossier's round trip between the Lost City and Tell-el-Amarna in the browser. Tested the museum victory, the Arkham investigation, and the newly reachable pyramid branch.
 
+## v0.15.0
+
+- 506 of 593 reachable entries, up 29 from v0.14.0 (477). The Tell-el-Amarna driver-guide route adds five numbered entries and the Quattarra caravan and desert add 24.
+- The Western Desert tracks water by the day, with navigation, caravan rescue, and other routes back to Cairo or Alexandria. The driver-guide can reach Tell-el-Amarna or leave the investigator stranded. Losing the rental in the village opens another way to catch the caravan.
+- Successors can return to certain private sites and attempt a Luck roll to recover portable possessions. Schema 10 preserves older dossiers, including eligible endings before the handoff.
+- Verified all 24 desert entries through game actions. In the browser, imported an earlier Fuzira save and verified the water count and pending roll across reloads.
+
 ## Next step
 
-Open remaining alternate routes. Equipment recovery from earlier investigators, optional handoffs during temporary insanity, and the rest of the Old One's combat interventions remain pending. Vercel deployment and music remain later steps.
+Open the Al-Azhar University investigation and other remaining Egyptian routes. Optional handoffs during temporary insanity and the rest of the Old One's combat interventions remain pending. Vercel deployment and music remain later steps.
 
 ## Resuming work
 

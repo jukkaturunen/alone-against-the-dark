@@ -433,6 +433,38 @@ test('Hawkes’s apartment uses observations for the pending Intelligence roll',
  assert(validateSave(ended));
 });
 
+test('a successor can recover private possessions once and a failed Luck roll loses them',()=>{
+ const athens=landfall('athens');
+ athens.inventory.push('Rope');
+ const enter=s=>choose(travel(s,'athensCafe'),'cafe-hawkes','cafe-accept');
+ const inspect=s=>{
+  for(const id of ['edu','mythos','occult','spot','listen']) s=expeditionRoll(s,`hawkes-${id}`);
+  return act(s,'hawkes-interpret');
+ };
+ const dead=expeditionRoll(inspect(enter(athens)),'hawkes-int',100);
+ const old=importSave(JSON.stringify({format:'aatd-save',version:9,game:{...dead,version:9}}));
+ const holt=inheritInvestigation(old,nextInvestigator(old).suggested);
+ assert(!holt.inventory.includes('Rope'));
+ assert(holt.log.some(event=>event.text.includes('left possessions')));
+ let pier=travel(act(holt,'successor-morning'),'pier');
+ while(new Date(pier.time).getUTCDay()!==6) pier=wait(pier,24);
+ const port=choose(pier,'embark','ship-skip-to-port','ship-disembark-athens');
+ const apartment=inspect(enter(port));
+ const id='recover-grunewald-hawkes-ending';
+ function recover(roll) {
+  const pending=act(apartment,id,()=>roll);
+  return resolveRoll(importSave(exportSave(pending)));
+ }
+ const recovered=recover(1);
+ assert(recovered.inventory.includes('Rope'));
+ assert(!actions(recovered).some(a=>a.id===id));
+ const lost=recover(100);
+ assert(!lost.inventory.includes('Rope'));
+ assert(!actions(lost).some(a=>a.id===id));
+ const publicDeath=choose(travel(athens,'athensParthenon'),'parthenon-hide','parthenon-talk');
+ assert.equal(inheritInvestigation(publicDeath,nextInvestigator(publicDeath).suggested).estates,undefined);
+});
+
 test('Cairo museum keeps split hours and switches the exhibition on October 30',()=>{
  const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
  let s=travel(cairo,'cairoMuseum');
@@ -543,6 +575,53 @@ function amarna() {
  const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
  return act(act(act(travel(wait(cairo,1),'fuziraMarket'),'fuzira-travel'),'amarna-rental'),'amarna-drive');
 }
+
+test('Tell-el-Amarna’s hired driver can strand the party or take them to the village',t=>{
+ let die=9;
+ t.mock.method(globalThis.crypto,'getRandomValues',values=>{values.fill(die);return values;});
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ const guide=choose(travel(wait(cairo,1),'fuziraMarket'),'fuzira-travel','amarna-rental','amarna-ask-guide');
+ const arrived=act(guide,'amarna-drive-with-guide');
+ assert.equal(arrived.entry,324);
+ assert.equal(arrived.time-guide.time,48*3600000);
+ const missing=act(arrived,'amarna-leave-car-with-guide');
+ assert.equal(missing.entry,361);
+ assert.equal(expeditionRoll(missing,'amarna-caravan-village').entry,341);
+ die=1;
+ const stranded=act(guide,'amarna-drive-with-guide');
+ assert.equal(stranded.entry,321);
+ const desert=choose(stranded,'amarna-try-river','amarna-follow-tracks','amarna-walk-into-desert');
+ assert.equal(desert.entry,94);
+ assert.equal(desert.quattarra.water,2);
+ assert.deepEqual(importSave(exportSave(desert)),desert);
+});
+
+test('a saved Quattarra trek can reach Giza or perish after running out of water',t=>{
+ t.mock.method(globalThis.crypto,'getRandomValues',values=>{values.fill(0);return values;});
+ const cairo=act(landfall('alexandria'),'rail-cairoRail-13');
+ const desert=choose(travel(wait(cairo,1),'fuziraMarket'),'fuzira-travel','quattarra-join','quattarra-caravan-camp');
+ assert.equal(desert.entry,94);
+ assert.equal(desert.quattarra.water,1);
+ const pending=act(desert,'quattarra-ration',()=>100);
+ const lost=resolveRoll(importSave(exportSave(pending)));
+ assert.equal(lost.entry,213);
+ assert.equal(lost.quattarra.water,0);
+ assert(!travelOptions(lost).some(destination=>!destination.disabled));
+ const giza=expeditionRoll(lost,'quattarra-navigate-213');
+ assert.equal(giza.entry,234);
+ const rescued=act(giza,'quattarra-giza');
+ assert.equal(rescued.location,'cairoRail');
+ assert.equal(rescued.quattarra,undefined);
+ let doomed=expeditionRoll(lost,'quattarra-navigate-213',100);
+ doomed=act(doomed,'quattarra-west');
+ assert.equal(doomed.entry,257);
+ assert(doomed.log.some(event=>event.text.includes('Lost 6 health to thirst')));
+ doomed=expeditionRoll(doomed,'quattarra-astronomy',100);
+ const dead=act(doomed,'quattarra-south');
+ assert.equal(dead.phase,'ending');
+ assert.equal(dead.hp,0);
+ assert.deepEqual(importSave(exportSave(dead)),dead);
+});
 
 test('survey odds use the spent hour and first face, with Luck spending disabled',()=>{
  let s=act(amarna(),'amarna-pyramid');

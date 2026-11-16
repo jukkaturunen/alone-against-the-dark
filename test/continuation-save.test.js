@@ -59,7 +59,7 @@ test('portable and browser migration preserve the version 1 pending roll and Luc
  const browser=memory(originalLibrary(legacy.game));
  const migrated=importSave(JSON.stringify(legacy));
  assert.deepEqual(loadLibrary(browser).games[0],migrated);
- assert.equal(migrated.version,9);
+ assert.equal(migrated.version,10);
  assert.equal(migrated.time,legacy.game.time);
  assert.equal(migrated.notes,legacy.game.notes);
  assert.equal(migrated.pending.roll,84);
@@ -139,13 +139,13 @@ test('portable and browser migration reopen the version 2 checkpoints at their s
  assert.equal(browser.getItem(KEY),raw);
  assert.equal(browser.getItem(BACKUP_V3),raw);
  saveLibrary(library,browser);
- assert.equal(JSON.parse(browser.getItem(KEY)).version,9);
+ assert.equal(JSON.parse(browser.getItem(KEY)).version,10);
  assert.equal(browser.getItem(BACKUP_V1),originalLibrary(legacy.game));
  assert.equal(browser.getItem(BACKUP_V3),raw);
  assert.deepEqual(loadLibrary(browser),library);
  for(const game of library.games) {
   const exported=exportSave(game);
-  assert.equal(JSON.parse(exported).version,9);
+  assert.equal(JSON.parse(exported).version,10);
   assert.deepEqual(importSave(exported),game);
  }
 });
@@ -157,7 +157,7 @@ test('a direct upgrade write backs up the source and a failed backup preserves t
  const unblocked=memory(raw);
  saveLibrary(library,unblocked);
  assert.equal(unblocked.getItem(BACKUP_V3),raw);
- assert.equal(JSON.parse(unblocked.getItem(KEY)).version,9);
+ assert.equal(JSON.parse(unblocked.getItem(KEY)).version,10);
 
  const original=memory(raw);
  const blocked={

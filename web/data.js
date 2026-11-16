@@ -7,7 +7,7 @@ import { PUZZLE_SCENES, PUZZLE_CLUES, PUZZLE_CHECKS } from './amarna-puzzle.js';
 import { UPPER_SCENES, UPPER_CLUES, UPPER_CHECKS } from './amarna-upper.js';
 import { EXTERIOR_SCENES, EXTERIOR_CHECKS } from './amarna-exterior.js';
 import { CITY_LOCATIONS, CITY_SCENES, CITY_CLUES, CITY_CHECKS } from './cairo-city.js';
-import { ROAD_LOCATIONS, ROAD_SCENES } from './egypt-road.js';
+import { ROAD_LOCATIONS, ROAD_SCENES, ROAD_CHECKS } from './egypt-road.js';
 import { PAR_LOCATIONS, PAR_SCENES, PAR_CLUES, PAR_CHECKS } from './parthenon.js';
 import { CM_LOCATIONS, CM_SCENES, CM_CLUES, CM_CHECKS } from './cairo-museum.js';
 import { AM_LOCATIONS, AM_SCENES, AM_CLUES, AM_CHECKS } from './athens-museum.js';
@@ -28,11 +28,14 @@ import { LATER_SCENES } from './arkham-later.js';
 import { HARDING_SCENES, HARDING_CLUES, HARDING_CHECKS } from './harding.js';
 import { COMMON_SKILLS, INVESTIGATORS, SUCCESSOR_LOCATIONS, SUCCESSOR_SCENES } from './investigators.js';
 import { SR_LOCATIONS, SR_SCENES, SR_CHECKS, SR_CLUES } from './successor-routes.js';
+import { ESTATE_CHECKS } from './estate.js';
+import { QT_LOCATIONS, QT_SCENES, QT_CHECKS } from './quattarra.js';
 // Verified against the user's PDFs. Printed page references, not PDF page offsets.
 export const SOURCE = { adventure: 'Alone Against the Dark (2017/2020)', rules: 'Call of Cthulhu Keeper Rulebook, 7th edition' };
 export const BASE_SKILLS = {...COMMON_SKILLS,...INVESTIGATORS.grunewald.skills};
 export const SUGGESTED = INVESTIGATORS.grunewald.suggested;
 export const LOCATIONS = {
+ ...QT_LOCATIONS,
  home:{name:"Grunewald’s home",entry:102,hours:[0,24],description:'A quiet place to eat, rest, and make telephone calls.'},
  bank:{name:'First National Bank',entry:3,hours:[9,15],description:'Withdraw travel funds from your account.'},
  newspaper:{name:'Arkham Advertiser',entry:60,hours:[8,17],description:'News, shipping schedules, and back-issue files.'},
@@ -109,6 +112,9 @@ export const CHECKS = {
  ...AP_CHECKS,
  ...LC_CHECKS,
  ...SR_CHECKS,
+ ...ESTATE_CHECKS,
+ ...ROAD_CHECKS,
+ ...QT_CHECKS,
  ...EXTERIOR_CHECKS,
  ...PAR_CHECKS,
  ...CITY_CHECKS,
@@ -124,6 +130,7 @@ export const CHECKS = {
  'library-spot':{entry:145,skill:'Spot Hidden',clue:'myths',target:70,repeat:true}
 };
 export const SCENES = {
+ ...QT_SCENES,
  ...HARDING_SCENES,
  ...LATER_SCENES,
  ...NYC_SCENES,
