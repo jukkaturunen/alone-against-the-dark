@@ -148,6 +148,10 @@ export const CHECKS = {
  'library-spot':{entry:145,skill:'Spot Hidden',clue:'myths',target:70,repeat:true}
 };
 export const SCENES = {
+ 66:{
+  title:'Wrong number',eyebrow:'Adventure reference',source:'Entry 66 · p. 19',reference:true,
+  paragraphs:['If you are here, you have gone wrong. Go back to where you just left.']
+ },
  ...QT_SCENES,
  ...AZ_SCENES,
  ...AL_SCENES,

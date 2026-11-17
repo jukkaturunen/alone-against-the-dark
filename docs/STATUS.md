@@ -1,6 +1,6 @@
 # Project status
 
-Updated: 16 November 2026.
+Updated: 17 November 2026.
 
 ## Decisions
 
@@ -121,6 +121,10 @@ Updated: 16 November 2026.
 - 592 of 593 numbered entries are reachable, up 39 from v0.16.0 (553). Entry 66 is the book's wrong-number marker. The count includes discoveries and automatic transitions.
 - Opened the scheduled Cairo flight, the Fokker, the remaining Dark Sea branches, and Athens and Cairo lodgings. Added the Fuzira hound's delayed arrival, the pyramid creature reference and dynamite entrance, and the Harding House bookmark and drawing.
 - Schema 12 preserves older dossiers. Verified a saved roll aboard the morning flight after importing an earlier airport dossier. The automated suite covers the cockpit lead, desert landing, hotel escape and combat, and the Hound's timing and escape.
+
+## v0.18.0
+
+- 593 of 593 numbered entries are implemented, up one from v0.17.0. The playable adventure contains 592 entries. Entry 66 is the book's wrong-number reference and is available under **Menu → About the adventure**.
 
 ## Next step
 

@@ -174,3 +174,7 @@ The v0.6.1 activity table adds two pacing options. Skip quiet periods looks for 
 - The Dark Sea records the book's numbered routes between encounter scenes. Where entry 512 has an investigation with no printed destination, the app reports an inconclusive result and lets the player continue aboard.
 - The Fuzira mirror now schedules the Hound after 2D10 days. It interrupts the next eligible location after its deadline and waits for a current roll or locked scene to finish. The Old One can intervene, or the investigator can use the Amulet of Nodens. The pursuit is scheduled when the mirror encounter is played.
 - Entry 331 opens the discovered pyramid entrance with dynamite. Human expedition companions leave after the blast. Entry 304 is collected as a creature reference. The printed trace from entries 24 and 49 leads to the bookmark at 68, which can lead to the drawing at 188. Entry 66 is a wrong-number marker with no entrance.
+
+## Entry 66 (v0.18.0)
+
+- **Menu → About the adventure → Read entry 66** opens the wrong-number marker. **Go back** closes the reference and returns to the current screen at the same game time.
